@@ -153,8 +153,8 @@ class DataFetcher:
         
         return summary
     
-    def get_gainers_losers(self, index: str = 'NIFTY50', limit: int = 10) -> Dict[str, List[Dict]]:
-        """Get top gainers and losers for a given index"""
+    def get_gainers_losers(self, index: str = 'NIFTY50', time_period: str = '1D', limit: int = 10) -> Dict[str, List[Dict]]:
+        """Get top gainers and losers for a given index and time period"""
         try:
             # Select stocks based on index
             if index == 'NIFTY50':
@@ -172,16 +172,33 @@ class DataFetcher:
             else:
                 stocks = self.nifty50_stocks
             
+            # Map time period to yfinance period and determine lookback
+            period_map = {
+                '1D': ('5d', 1),      # Fetch 5 days, compare last 2
+                '1Week': ('1mo', 5),  # Fetch 1 month, compare 1 week back (5 trading days)
+                '1Month': ('3mo', 21), # Fetch 3 months, compare 1 month back (~21 trading days)
+                '6Months': ('1y', 126), # Fetch 1 year, compare 6 months back (~126 trading days)
+                '1Year': ('2y', 252)    # Fetch 2 years, compare 1 year back (~252 trading days)
+            }
+            
+            yf_period, lookback_days = period_map.get(time_period, ('5d', 1))
+            
             stock_data = []
             
             for symbol in stocks[:30]:  # Limit to avoid rate limiting
                 try:
                     ticker = yf.Ticker(symbol)
-                    hist = ticker.history(period='2d')
+                    hist = ticker.history(period=yf_period)
                     
-                    if len(hist) >= 2:
+                    if len(hist) >= lookback_days + 1:
                         current = hist['Close'].iloc[-1]
-                        prev = hist['Close'].iloc[-2]
+                        # For 1D, compare to previous day; for others, compare to N days ago
+                        if time_period == '1D' and len(hist) >= 2:
+                            prev = hist['Close'].iloc[-2]
+                        else:
+                            # Get the closing price from lookback_days ago
+                            prev = hist['Close'].iloc[-(lookback_days + 1)]
+                        
                         change_pct = ((current - prev) / prev) * 100
                         
                         stock_data.append({

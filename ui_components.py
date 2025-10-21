@@ -273,6 +273,7 @@ class GainersLosersSection(BaseSection):
     def __init__(self, parent, colors, data_fetcher):
         super().__init__(parent, colors, data_fetcher, "🔥 Top Gainers & Losers")
         self.selected_index = tk.StringVar(value='NIFTY50')
+        self.selected_time_period = tk.StringVar(value='1D')
         self.selector_frame = None
         self.data_frame = None
         self.loading_label = None  # Store loading label reference
@@ -286,6 +287,7 @@ class GainersLosersSection(BaseSection):
             self.selector_frame = tk.Frame(self.content_frame, bg=self.colors['bg'])
             self.selector_frame.pack(fill=tk.X, pady=(0, 10))
             
+            # Index selector
             tk.Label(
                 self.selector_frame,
                 text="Select Index:",
@@ -304,6 +306,26 @@ class GainersLosersSection(BaseSection):
             )
             index_dropdown.pack(side=tk.LEFT)
             index_dropdown.bind('<<ComboboxSelected>>', lambda e: self.update_data())
+            
+            # Time period selector
+            tk.Label(
+                self.selector_frame,
+                text="Time:",
+                font=('Tahoma', 9, 'bold'),
+                bg=self.colors['bg']
+            ).pack(side=tk.LEFT, padx=(20, 5))
+            
+            time_dropdown = ttk.Combobox(
+                self.selector_frame,
+                textvariable=self.selected_time_period,
+                values=['1D', '1Week', '1Month', '6Months', '1Year'],
+                state='readonly',
+                width=12,
+                font=('Tahoma', 8),
+                cursor='hand2'
+            )
+            time_dropdown.pack(side=tk.LEFT)
+            time_dropdown.bind('<<ComboboxSelected>>', lambda e: self.update_data())
         
         # Create data frame for first time
         if self.data_frame is None:
@@ -337,7 +359,11 @@ class GainersLosersSection(BaseSection):
         
         try:
             # Fetch data
-            data = self.data_fetcher.get_gainers_losers(self.selected_index.get(), limit=10)
+            data = self.data_fetcher.get_gainers_losers(
+                self.selected_index.get(), 
+                time_period=self.selected_time_period.get(),
+                limit=10
+            )
             
             # Remove loading indicator
             if self.loading_label:

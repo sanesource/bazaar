@@ -2,6 +2,8 @@
 
 A lightweight, cross-platform Python GUI application for displaying real-time Indian stock market information with a nostalgic Windows XP-style interface.
 
+<img width="1207" height="845" alt="Image" src="https://github.com/user-attachments/assets/7bd10f5e-cacd-4087-a841-95d28551f0d5" />
+
 ## ✨ Features
 
 - **📊 Market Summary** - Quick overview of market status and major indices
