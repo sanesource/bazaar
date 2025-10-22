@@ -25,6 +25,3 @@ Thumbs.db
 .env
 .env.local
 
-# Package manager
-package-lock.json
-yarn.lock
