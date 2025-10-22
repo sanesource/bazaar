@@ -1,102 +1,108 @@
-# 🚀 Quick Start Guide
+# 🚀 Bazaar - Quick Start Guide
 
-Get Bazaar up and running in 3 easy steps!
+Get the Bazaar stock market dashboard running in just 3 steps!
 
-## Step 1: Prerequisites
+## Prerequisites
 
-Make sure you have **Python 3.8 or higher** installed:
+- **Node.js v18+** - [Download here](https://nodejs.org/)
+- **npm v9+** (comes with Node.js)
 
-```bash
-python3 --version   # Linux/macOS
-python --version    # Windows
-```
+## Quick Setup
 
-If not installed, download from [python.org](https://www.python.org/downloads/)
+### Option 1: Automated Setup (Recommended)
 
-## Step 2: Installation
-
-### Option A: Automatic Setup (Recommended)
-
-**Linux/macOS:**
+#### Linux/macOS:
 
 ```bash
 ./scripts/setup.sh
+npm start
 ```
 
-**Windows:**
+#### Windows:
 
-```
+```bash
 scripts\setup.bat
+npm start
 ```
 
-### Option B: Manual Setup
+### Option 2: Manual Setup
 
 ```bash
-pip install -r requirements.txt
+# Install dependencies
+npm install
+
+# Run the application
+npm start
 ```
 
-Or:
+## That's It! 🎉
+
+The application will open automatically and start fetching market data.
+
+## What You'll See
+
+- **Index Tickers** - Nifty50, Bank Nifty, Sensex
+- **Top Gainers & Losers** - Best and worst performing stocks
+- **Market Sentiment** - VIX and Fear/Greed meter
+- **Sectoral Performance** - How different sectors are performing
+
+## Features
+
+- ⚡ **Auto-refresh** every 60 seconds
+- 🔄 **Manual refresh** button
+- 📊 **Index filter** for gainers/losers
+- ⏱️ **Time period filter** (1D, 1Week, 1Month, 6Months, 1Year)
+- 🎨 **Windows XP nostalgic theme**
+
+## Troubleshooting
+
+### "Node.js is not installed"
+
+Download and install Node.js v18+ from [nodejs.org](https://nodejs.org/)
+
+### "Dependencies not installed"
+
+Run the setup script again:
 
 ```bash
-pip install yfinance pandas requests
+./scripts/setup.sh    # Linux/macOS
+scripts\setup.bat     # Windows
 ```
 
-## Step 3: Run the Application
-
-### Easy Launch
-
-**Linux/macOS:**
-
-```bash
-./scripts/run.sh
-```
-
-**Windows:**
-
-```
-scripts\run.bat
-```
-
-### Direct Launch
-
-```bash
-python3 main.py   # Linux/macOS
-python main.py    # Windows
-```
-
----
-
-## 🎯 That's it!
-
-The application will open with:
-
-- Real-time market data
-- Windows XP-style interface
-- Auto-refresh every 60 seconds
-
-## 💡 Tips
-
-- Click **"🔄 Refresh Now"** to manually update data
-- Use the **dropdown** in Gainers/Losers to switch indices
-- **Scroll** to view all sections
-- The app runs entirely **offline** after fetching data
-
-## ⚠️ Troubleshooting
-
-**"Module not found" error?**
-
-- Run the setup script again
-- Or manually: `pip install -r requirements.txt`
-
-**Data not loading?**
+### Data not loading
 
 - Check your internet connection
-- Yahoo Finance API might be temporarily down
+- Wait a few seconds - Yahoo Finance API might be slow
+- Click the "Refresh Now" button
 
-**UI looks weird on Linux?**
+### Application won't start
 
-- Install tkinter: `sudo apt-get install python3-tk`
+1. Delete `node_modules` folder
+2. Run setup again
+3. Try `npm start`
+
+## Building Executables
+
+Want a standalone app? Build it:
+
+```bash
+# For your current platform
+npm run build
+
+# For specific platform
+npm run build:win     # Windows
+npm run build:mac     # macOS
+npm run build:linux   # Linux
+```
+
+Executables will be in the `dist/` folder.
+
+## Next Steps
+
+- Read [README.md](README.md) for full documentation
+- Check [docs/FEATURES.md](docs/FEATURES.md) for detailed features
+- See [docs/ELECTRONJS_IMPLEMENTATION_GUIDE.md](docs/ELECTRONJS_IMPLEMENTATION_GUIDE.md) for technical details
 
 ---
 
-**Need help?** Check the full [README.md](README.md) for detailed documentation.
+**Enjoy tracking the markets! 📈💰**

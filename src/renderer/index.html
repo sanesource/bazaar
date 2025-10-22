@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Bazaar - Indian Stock Market</title>
+    <link rel="stylesheet" href="styles/winxp.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+  </head>
+  <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-container">
+        <div class="loading-icon">⏳</div>
+        <div class="loading-text">Loading market data...</div>
+        <div class="loading-subtext">Please wait while we fetch the latest updates</div>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <h1 class="header-title">🏛️ Bazaar - Indian Stock Market Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <span id="status-label" class="status-label">Loading...</span>
+          <button id="refresh-btn" class="refresh-btn">🔄 Refresh Now</button>
+        </div>
+      </header>
+
+      <!-- Scrollable Content Area -->
+      <div class="content-wrapper">
+        <div class="scrollable-content">
+          <!-- Index Tickers Section -->
+          <section id="tickers-section" class="section">
+            <div class="section-header">
+              <h2 class="section-title">📈 Index Tickers</h2>
+            </div>
+            <div class="section-content">
+              <div id="tickers-container" class="tickers-grid"></div>
+            </div>
+          </section>
+
+          <!-- Gainers & Losers Section -->
+          <section id="gainers-losers-section" class="section">
+            <div class="section-header">
+              <h2 class="section-title">🔥 Top Gainers & Losers</h2>
+            </div>
+            <div class="section-content">
+              <!-- Selector Controls -->
+              <div class="selector-controls">
+                <label class="selector-label">
+                  <span class="label-text">Select Index:</span>
+                  <select id="index-selector" class="selector-dropdown">
+                    <option value="NIFTY50">NIFTY 50</option>
+                    <option value="BANKNIFTY">BANK NIFTY</option>
+                    <option value="MIDCAP100">MIDCAP 100</option>
+                    <option value="SMALLCAP250">SMALLCAP 250</option>
+                  </select>
+                </label>
+
+                <label class="selector-label">
+                  <span class="label-text">Time:</span>
+                  <select id="time-selector" class="selector-dropdown">
+                    <option value="1D">1 Day</option>
+                    <option value="1Week">1 Week</option>
+                    <option value="1Month">1 Month</option>
+                    <option value="6Months">6 Months</option>
+                    <option value="1Year">1 Year</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Gainers & Losers Grid -->
+              <div class="gainers-losers-grid">
+                <div class="gainers-column">
+                  <h3 class="column-title positive">🟢 Top Gainers</h3>
+                  <div id="gainers-list" class="stock-list"></div>
+                </div>
+
+                <div class="losers-column">
+                  <h3 class="column-title negative">🔴 Top Losers</h3>
+                  <div id="losers-list" class="stock-list"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Market Sentiment Section -->
+          <section id="sentiment-section" class="section">
+            <div class="section-header">
+              <h2 class="section-title">😰 Market Sentiment</h2>
+            </div>
+            <div class="section-content">
+              <div class="sentiment-grid">
+                <!-- VIX Card -->
+                <div class="sentiment-card">
+                  <h3 class="card-title">India VIX (Volatility Index)</h3>
+                  <div id="vix-value" class="card-value">--</div>
+                  <div id="vix-change" class="card-change">--</div>
+                </div>
+
+                <!-- Fear/Greed Meter Card -->
+                <div class="sentiment-card">
+                  <h3 class="card-title">Market Greed Meter</h3>
+                  <div id="greed-score" class="card-value">--</div>
+                  <div id="greed-status" class="card-status">--</div>
+                  <div class="meter-legend">0=Extreme Fear 25=Fear 50=Neutral 75=Greed 100=Extreme Greed</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Sectoral Performance Section -->
+          <section id="sectoral-section" class="section">
+            <div class="section-header">
+              <h2 class="section-title">🏭 Sectoral Performance</h2>
+            </div>
+            <div class="section-content">
+              <div id="sectoral-container" class="sectoral-list"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <span id="last-update-label">Last Updated: Never</span>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/ui-components.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
+

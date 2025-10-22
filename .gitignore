@@ -1,109 +1,30 @@
-# ============================================
-# Python
-# ============================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
+# Dependencies
+node_modules/
 
-# Distribution / packaging
-build/
-develop-eggs/
+# Build output
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# ============================================
-# PyInstaller
-# ============================================
-# PyInstaller build artifacts - DO NOT COMMIT
-*.spec
 build/
-dist/
 
-# ============================================
-# Virtual Environments
-# ============================================
-venv/
-ENV/
-env/
-.venv/
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# ============================================
-# IDE / Editor
-# ============================================
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.project
-.pydevproject
-.settings/
 
-# ============================================
-# Operating System
-# ============================================
-# macOS
+# OS
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-Desktop.ini
 
-# Linux
-*~
+# Environment
+.env
+.env.local
 
-# ============================================
-# Icon Generation
-# ============================================
-# macOS iconset (temporary, can be regenerated)
-*.iconset/
-
-# ============================================
-# Logs and Databases
-# ============================================
-*.log
-*.sql
-*.sqlite
-*.db
-
-# ============================================
-# Testing
-# ============================================
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-
-# ============================================
-# Temporary Files
-# ============================================
-*.tmp
-*.bak
-*.swp
-*.backup
-
+# Package manager
+package-lock.json
+yarn.lock

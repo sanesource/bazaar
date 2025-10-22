@@ -1,240 +1,161 @@
 # 🏛️ Bazaar - Indian Stock Market Dashboard
 
-A lightweight, cross-platform Python GUI application for displaying real-time Indian stock market information with a nostalgic Windows XP-style interface.
+A lightweight, cross-platform Electron desktop application for displaying real-time Indian stock market information with a nostalgic Windows XP-style interface.
 
-<img width="1207" height="845" alt="Image" src="https://github.com/user-attachments/assets/7bd10f5e-cacd-4087-a841-95d28551f0d5" />
+![Bazaar Screenshot](https://github.com/user-attachments/assets/7bd10f5e-cacd-4087-a841-95d28551f0d5)
 
 ## ✨ Features
 
-- **📊 Market Summary** - Quick overview of market status and major indices
-- **📈 Index Tickers** - Real-time data for Nifty50, Bank Nifty, and Sensex30
-- **🔥 Top Gainers & Losers** - Top 10 performing stocks with index filter
-- **😰 Market Sentiment** - India VIX and Fear/Greed meter
-- **🏭 Sectoral Performance** - Visual representation of sector performance
+- 📊 **Market Summary** - Major indices (Nifty50, Bank Nifty, Sensex)
+- 🔥 **Top Gainers & Losers** - Dynamic stock lists with time period filters
+- 😰 **Market Sentiment** - India VIX and Fear/Greed meter
+- 🏭 **Sectoral Performance** - Visual sector charts
+- 🎨 **Windows XP Theme** - Classic nostalgic interface
+- ⚡ **Auto-Refresh** - Updates every 60 seconds
+- 🌐 **Real NSE Data** - Uses official NSE India API
 
-## 🎨 Design
-
-- **Windows XP Theme** - Classic, minimalistic UI inspired by Windows XP
-- **Modular Architecture** - Easy to extend with new sections
-- **Cross-Platform** - Works on Windows, macOS, and Ubuntu/Linux
-
-## 📚 Documentation
-
-For detailed documentation, see the [`docs/`](docs/) folder:
-
-- **[START_HERE.md](docs/START_HERE.md)** - Complete overview and quick start
-- **[QUICKSTART.md](docs/QUICKSTART.md)** - Get running in 3 steps
-- **[INSTALLATION.md](docs/INSTALLATION.md)** - Platform-specific installation guide
-- **[FEATURES.md](docs/FEATURES.md)** - Detailed feature documentation
-- **[PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** - Architecture and customization
-- **[BUILD_GUIDE.md](docs/BUILD_GUIDE.md)** - Building executables for distribution
-- **[CHANGELOG.md](docs/CHANGELOG.md)** - Version history and updates
-- **[LOADING_STATES.md](docs/LOADING_STATES.md)** - Loading & error handling documentation
-
-## 🚀 Installation
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- pip (Python package manager)
+- Node.js v18+ ([Download](https://nodejs.org/))
+- npm v9+
 
-### Setup
-
-1. **Clone or download this repository**
-
-2. **Install dependencies:**
+### Installation & Run
 
 ```bash
-# Automatic setup (recommended)
-./scripts/setup.sh      # Linux/macOS
-scripts\setup.bat       # Windows
+# Clone the repository
+git clone <repository-url>
+cd bazaar
 
-# Or manual installation
-pip install -r requirements.txt
+# Install dependencies
+npm install
+
+# Run the application
+npm start
 ```
 
-That's it! The application uses only 3 lightweight dependencies:
+### Or use helper scripts:
 
-- `yfinance` - For fetching stock market data (free API)
-- `pandas` - For data processing
-- `requests` - For HTTP requests
-
-## 🖥️ Usage
-
-### Running the Application
-
-**Quick launch:**
+**Linux/macOS:**
 
 ```bash
-./scripts/run.sh        # Linux/macOS
-scripts\run.bat         # Windows
+./scripts/setup.sh
+npm start
 ```
 
-**Or directly:**
+**Windows:**
 
 ```bash
-python main.py
+scripts\setup.bat
+npm start
 ```
 
-### Features Explanation
-
-- **Auto-Refresh**: Data automatically refreshes every 60 seconds
-- **Manual Refresh**: Click the "🔄 Refresh Now" button to update immediately
-- **Index Selection**: Use the dropdown in Gainers/Losers section to switch between indices
-- **Scrollable**: Scroll through all sections using mouse wheel or scrollbar
-
-## 🔧 Configuration
-
-### Changing Refresh Interval
-
-Edit `main.py` and modify the refresh interval (in seconds):
-
-```python
-self.refresh_interval = 60  # Change to desired seconds
-```
-
-### Adding New Sections
-
-The application is designed to be modular. To add a new section:
-
-1. Create a new class in `ui_components.py` that inherits from `BaseSection`
-2. Implement the `update()` method
-3. Add the section to `main.py` in the `create_ui()` method:
-
-```python
-self.new_section = NewSection(
-    self.scrollable_frame, self.colors, self.data_fetcher
-)
-self.sections.append(self.new_section)
-```
-
-### Modifying Stock Lists
-
-Edit `data_fetcher.py` to modify the stock lists for different indices:
-
-```python
-self.nifty50_stocks = [
-    'RELIANCE.NS', 'TCS.NS', ...
-]
-```
-
-## 📦 Building Executable (Optional)
-
-To create a standalone executable for distribution:
-
-### Quick Build
-
-**Option 1: Automated Build Script (Recommended)**
+## 📦 Build Executables
 
 ```bash
-# Install PyInstaller first
-pip install pyinstaller
+# Build for current platform
+npm run build
 
-# Optional: Create application icons from your logo
-python3 create_icons.py
-
-# Run the automated build script
-python build.py          # All platforms
+# Build for specific platform
+npm run build:win     # Windows
+npm run build:mac     # macOS
+npm run build:linux   # Linux
 ```
 
-**Option 2: Manual Build**
+Executables will be in the `dist/` folder (~80-100 MB).
 
-```bash
-# Windows
-pyinstaller --onefile --windowed --name Bazaar main.py
+## 📚 Documentation
 
-# macOS/Linux
-pyinstaller --onefile --windowed --name Bazaar main.py
-```
+All documentation is in the [`docs/`](docs/) folder:
 
-The executable will be in the `dist/` folder.
+- **[GETTING_STARTED.txt](docs/GETTING_STARTED.txt)** - Simple text guide
+- **[QUICKSTART.md](docs/QUICKSTART.md)** - Get running in 3 steps
+- **[ELECTRONJS_IMPLEMENTATION_GUIDE.md](docs/ELECTRONJS_IMPLEMENTATION_GUIDE.md)** - Complete implementation guide
+- **[ELECTRON_MIGRATION.md](docs/ELECTRON_MIGRATION.md)** - Migration from Python summary
+- **[FEATURES.md](docs/FEATURES.md)** - Detailed features
+- **[PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** - Architecture
+- **[INSTALLATION.md](docs/INSTALLATION.md)** - Platform-specific setup
+- **[BUILD_GUIDE.md](docs/BUILD_GUIDE.md)** - Building executables
+- **[CHANGELOG.md](docs/CHANGELOG.md)** - Version history
 
-### Testing Your Build
+## 🛠️ Technology Stack
 
-```bash
-python test_build.py
-```
+- **Electron** (v28+) - Desktop framework
+- **Node.js** - JavaScript runtime
+- **stock-nse-india** - NSE India API for real-time data
+- **HTML5/CSS3** - UI structure and Windows XP theme
+- **Vanilla JavaScript** - No frameworks for minimal size
 
-### Complete Build Documentation
+## 🎯 Key Features
 
-For detailed instructions including:
+### Dynamic Stock Lists
 
-- Platform-specific optimizations
-- Build size reduction techniques
-- Creating installers and distribution packages
-- Code signing
-- Troubleshooting
+Stock lists are fetched dynamically from NSE India API - no hardcoding! This means the app automatically updates when index constituents change.
 
-See the **[docs/](docs/)** folder for complete documentation:
+### Optimized Bundle
 
-- **[BUILD_GUIDE.md](docs/BUILD_GUIDE.md)** - Complete build guide
-- **[BUILDING.md](docs/BUILDING.md)** - Quick reference
-- **[README_ICONS.md](docs/README_ICONS.md)** - Icon setup guide
+- Only 1 production dependency (`stock-nse-india`)
+- No React/Vue - pure JavaScript
+- ASAR compression enabled
+- ~80-100 MB final build size
 
-**Expected build size:** 60-100 MB (includes Python runtime and dependencies)
+### Real-Time Data
 
-## 🌐 Data Sources
+All data fetched from official NSE India API:
 
-This application uses **free and open-source** data sources:
+- ✅ Free and open
+- ✅ No API key required
+- ✅ Real-time market data
 
-- **Yahoo Finance API** (via `yfinance` library) - Provides real-time and historical data for Indian stock market indices and stocks
+## 🐛 Troubleshooting
 
-All data is fetched in real-time with no API key required!
+### Linux Sandbox Error
 
-## 🛠️ Troubleshooting
+If you get sandbox errors on Linux, the app already includes `--no-sandbox` flag. If issues persist, check [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
 ### Data Not Loading
 
-- Check your internet connection
-- Yahoo Finance API might be temporarily unavailable - try again later
-- Some stocks might have different symbols; verify them on Yahoo Finance
+- Check internet connection
+- NSE API might be temporarily down - wait and refresh
+- Click the "🔄 Refresh Now" button
 
-### UI Not Displaying Correctly
+### Application Won't Start
 
-- Ensure you're using Python 3.8+
-- On Linux, you might need to install tkinter: `sudo apt-get install python3-tk`
-- Try resizing the window if elements appear cut off
-
-### Performance Issues
-
-- Reduce the number of stocks being tracked in `data_fetcher.py`
-- Increase the refresh interval in `main.py`
+```bash
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+npm start
+```
 
 ## 📝 System Requirements
 
-- **OS**: Windows 7+, macOS 10.12+, Ubuntu 18.04+ (or any Linux with Python 3.8+)
-- **RAM**: 256 MB minimum
-- **Storage**: 100 MB (including Python and dependencies)
-- **Internet**: Required for fetching real-time data
+- **OS:** Windows 10+, macOS 10.12+, Ubuntu 18.04+
+- **RAM:** 512 MB minimum
+- **Storage:** 150 MB
+- **Internet:** Required for real-time data
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here are some ways you can contribute:
-
-- Add more market indicators
-- Improve the UI/UX
-- Add chart visualizations
-- Optimize data fetching
-- Fix bugs
+Contributions welcome! See documentation for architecture details.
 
 ## 📄 License
 
-This project is free and open-source. Feel free to use, modify, and distribute.
+MIT License - Free and open-source
 
 ## ⚠️ Disclaimer
 
-This application is for informational purposes only. The stock market data is provided as-is without any guarantees of accuracy or completeness. Do not use this application as the sole basis for making investment decisions. Always consult with a qualified financial advisor before making investment decisions.
+For informational purposes only. Not financial advice. Always consult a qualified financial advisor before making investment decisions.
 
 ## 🙏 Acknowledgments
 
-- **Yahoo Finance** - For providing free access to market data
-- **Python tkinter** - For the lightweight, cross-platform GUI framework
-- **Windows XP** - For the iconic UI design inspiration
-
-## 📧 Support
-
-If you encounter any issues or have suggestions, please open an issue on the project repository.
+- **NSE India** - Official market data API
+- **Electron.js** - Cross-platform framework
+- **Windows XP** - UI design inspiration
 
 ---
 
 **Happy Trading! 📈💰**
+
+For detailed documentation, see the [docs/](docs/) folder.

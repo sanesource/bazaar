@@ -1,0 +1,94 @@
+/* Windows XP Theme Variables */
+:root {
+  --xp-bg: #ece9d8;
+  --xp-fg: #000000;
+  --xp-button: #d4d0c8;
+  --xp-button-hover: #e8e4d8;
+  --xp-header: #0054e3;
+  --xp-header-text: #ffffff;
+  --xp-border: #7a96df;
+  --xp-positive: #00aa00;
+  --xp-negative: #cc0000;
+  --xp-text-bg: #ffffff;
+  --xp-gray: #666666;
+  --xp-font: "Tahoma", "MS Sans Serif", Arial, sans-serif;
+}
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--xp-font);
+  background-color: var(--xp-bg);
+  color: var(--xp-fg);
+  font-size: 11px;
+  overflow: hidden;
+}
+
+/* Windows XP Button Style */
+.xp-button {
+  background-color: var(--xp-button);
+  border: 2px outset var(--xp-button);
+  border-radius: 2px;
+  padding: 4px 12px;
+  font-family: var(--xp-font);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.xp-button:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.xp-button:active {
+  border-style: inset;
+}
+
+.xp-button:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Windows XP Panel Style */
+.xp-panel {
+  background-color: var(--xp-bg);
+  border: 2px groove var(--xp-button);
+  border-radius: 2px;
+}
+
+.xp-panel-sunken {
+  border-style: inset;
+}
+
+.xp-panel-raised {
+  border-style: outset;
+}
+
+/* Windows XP Header Style */
+.xp-header {
+  background: linear-gradient(to right, var(--xp-header), #1084f7);
+  color: var(--xp-header-text);
+  padding: 8px 12px;
+  font-weight: bold;
+  border: 2px outset var(--xp-header);
+}
+
+/* Windows XP Dropdown Style */
+.xp-dropdown {
+  background-color: var(--xp-text-bg);
+  border: 2px inset var(--xp-button);
+  padding: 3px 5px;
+  font-family: var(--xp-font);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.xp-dropdown:focus {
+  outline: 1px dotted var(--xp-fg);
+  outline-offset: -2px;
+}

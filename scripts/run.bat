@@ -1,15 +1,12 @@
 @echo off
-REM Quick launch script for Bazaar (Windows)
+echo 🏛️ Starting Bazaar...
 
-cd /d "%~dp0"
-
-python -c "import yfinance" 2>nul
-if errorlevel 1 (
-    echo Dependencies not installed. Running setup...
-    call setup.bat
-    echo.
+:: Check if node_modules exists
+if not exist "node_modules\" (
+    echo ❌ Dependencies not installed. Please run setup.bat first.
+    pause
+    exit /b 1
 )
 
-echo Launching Bazaar...
-python main.py
-
+call npm start
+pause

@@ -1,0 +1,116 @@
+================================================================================
+🏛️ BAZAAR - ELECTRON APP - GETTING STARTED
+================================================================================
+
+The Python app has been successfully replaced with an optimized Electron app!
+
+================================================================================
+📦 STEP 1: INSTALL DEPENDENCIES
+================================================================================
+
+Run ONE of these commands:
+
+Linux/macOS:
+    ./scripts/setup.sh
+
+Windows:
+    scripts\setup.bat
+
+OR manually:
+    npm install
+
+================================================================================
+🚀 STEP 2: RUN THE APPLICATION
+================================================================================
+
+After installation, start the app:
+
+    npm start
+
+OR use the run script:
+
+Linux/macOS:
+    ./scripts/run.sh
+
+Windows:
+    scripts\run.bat
+
+================================================================================
+🏗️ STEP 3: BUILD EXECUTABLES (Optional)
+================================================================================
+
+Create standalone executables:
+
+For current platform:
+    npm run build
+
+For specific platform:
+    npm run build:win     (Windows)
+    npm run build:mac     (macOS)
+    npm run build:linux   (Linux)
+
+Executables will be in the dist/ folder.
+
+================================================================================
+📊 WHAT'S INCLUDED
+================================================================================
+
+✅ Real-time Indian stock market data
+✅ Index tickers (Nifty50, Bank Nifty, Sensex)
+✅ Top gainers & losers with filters
+✅ Market sentiment (VIX, Fear/Greed meter)
+✅ Sectoral performance charts
+✅ Auto-refresh every 60 seconds
+✅ Windows XP nostalgic theme
+✅ Cross-platform support
+
+================================================================================
+📚 DOCUMENTATION
+================================================================================
+
+README.md                  - Main documentation
+QUICKSTART.md             - Quick start guide
+ELECTRON_MIGRATION.md     - Migration summary
+docs/                     - Detailed documentation
+
+================================================================================
+⚙️ REQUIREMENTS
+================================================================================
+
+✓ Node.js v18.0.0 or higher
+✓ npm v9.0.0 or higher
+✓ Internet connection (for fetching market data)
+
+================================================================================
+🐛 TROUBLESHOOTING
+================================================================================
+
+Issue: "Node.js not found"
+Solution: Install Node.js from https://nodejs.org/
+
+Issue: "Dependencies not installed"
+Solution: Run ./scripts/setup.sh or npm install
+
+Issue: "Data not loading"
+Solution: Check internet connection, wait a few seconds, click Refresh
+
+Issue: "Port in use"
+Solution: Close other Electron apps or change port
+
+================================================================================
+🎯 OPTIMIZATIONS
+================================================================================
+
+• Minimal bundle size (~80-100 MB)
+• Only 1 production dependency (yahoo-finance2)
+• No React/Vue (pure JavaScript)
+• ASAR compression enabled
+• Maximum compression settings
+
+================================================================================
+
+Ready to start? Run:  npm install && npm start
+
+Happy Trading! 📈💰
+
+================================================================================

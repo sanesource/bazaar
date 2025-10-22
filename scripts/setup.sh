@@ -1,44 +1,45 @@
 #!/bin/bash
-# Setup script for Bazaar Stock Market Dashboard (Linux/macOS)
 
-echo "🏛️  Bazaar - Indian Stock Market Dashboard Setup"
-echo "================================================="
+echo "🏛️ Bazaar - Setup Script"
+echo "========================"
 echo ""
 
-# Check Python installation
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python 3 is not installed. Please install Python 3.8 or higher."
+# Check Node.js
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is not installed. Please install Node.js v18 or higher."
     exit 1
 fi
 
-echo "✓ Found Python: $(python3 --version)"
-echo ""
-
-# Check pip
-if ! python3 -m pip --version &> /dev/null; then
-    echo "Installing pip..."
-    python3 -m ensurepip --upgrade 2>/dev/null || {
-        echo "❌ Could not install pip. Please install pip manually."
-        exit 1
-    }
+NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 18 ]; then
+    echo "❌ Node.js version 18 or higher is required. Current version: $(node -v)"
+    exit 1
 fi
 
-echo "✓ Found pip: $(python3 -m pip --version)"
-echo ""
+echo "✅ Node.js $(node -v) detected"
 
-# Install dependencies
+# Check npm
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm is not installed."
+    exit 1
+fi
+
+echo "✅ npm $(npm -v) detected"
+echo ""
 echo "📦 Installing dependencies..."
-python3 -m pip install --user -r requirements.txt
+npm install
 
 if [ $? -eq 0 ]; then
     echo ""
     echo "✅ Setup complete!"
     echo ""
-    echo "To run the application:"
-    echo "  python3 main.py"
+    echo "To start the application:"
+    echo "  npm start"
     echo ""
+    echo "To build executables:"
+    echo "  npm run build"
 else
-    echo "❌ Failed to install dependencies. Please check your internet connection and try again."
+    echo ""
+    echo "❌ Installation failed. Please check the errors above."
     exit 1
 fi
-

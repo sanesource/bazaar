@@ -1,14 +1,11 @@
 #!/bin/bash
-# Quick launch script for Bazaar (Linux/macOS)
 
-cd "$(dirname "$0")"
+echo "🏛️ Starting Bazaar..."
 
-if ! python3 -c "import yfinance" 2>/dev/null; then
-    echo "Dependencies not installed. Running setup..."
-    ./setup.sh
-    echo ""
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "❌ Dependencies not installed. Please run setup.sh first."
+    exit 1
 fi
 
-echo "🏛️  Launching Bazaar..."
-python3 ../main.py
-
+npm start

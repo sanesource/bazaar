@@ -1,44 +1,48 @@
 @echo off
-REM Setup script for Bazaar Stock Market Dashboard (Windows)
-
-echo ==========================================
-echo    Bazaar - Indian Stock Market Dashboard
-echo    Setup Script for Windows
-echo ==========================================
+echo 🏛️ Bazaar - Setup Script
+echo ========================
 echo.
 
-REM Check Python installation
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo Error: Python is not installed or not in PATH
-    echo Please install Python 3.8 or higher from python.org
+:: Check Node.js
+where node >nul 2>nul
+if %ERRORLEVEL% NEQ 0 (
+    echo ❌ Node.js is not installed. Please install Node.js v18 or higher.
     pause
     exit /b 1
 )
 
-echo Found Python:
-python --version
+echo ✅ Node.js detected
+node -v
+
+:: Check npm
+where npm >nul 2>nul
+if %ERRORLEVEL% NEQ 0 (
+    echo ❌ npm is not installed.
+    pause
+    exit /b 1
+)
+
+echo ✅ npm detected
+npm -v
 echo.
 
-REM Install dependencies
-echo Installing dependencies...
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+echo 📦 Installing dependencies...
+call npm install
 
-if errorlevel 1 (
+if %ERRORLEVEL% EQU 0 (
     echo.
-    echo Error: Failed to install dependencies
-    echo Please check your internet connection and try again
+    echo ✅ Setup complete!
+    echo.
+    echo To start the application:
+    echo   npm start
+    echo.
+    echo To build executables:
+    echo   npm run build
+) else (
+    echo.
+    echo ❌ Installation failed. Please check the errors above.
     pause
     exit /b 1
 )
 
-echo.
-echo ==========================================
-echo Setup complete!
-echo.
-echo To run the application, execute:
-echo     python main.py
-echo ==========================================
 pause
-
