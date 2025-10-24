@@ -2,9 +2,9 @@
 
 class BazaarApp {
   constructor() {
-    this.refreshInterval = 60000; // 60 seconds
-    this.autoRefreshTimer = null;
-    this.isRefreshing = false;
+    this.tickerRefreshInterval = 3000; // 3 seconds for tickers
+    this.tickerRefreshTimer = null;
+    this.isRefreshingTickers = false;
 
     this.initializeElements();
     this.attachEventListeners();
@@ -12,8 +12,7 @@ class BazaarApp {
   }
 
   initializeElements() {
-    this.refreshBtn = document.getElementById("refresh-btn");
-    this.statusLabel = document.getElementById("status-label");
+    this.marketStatus = document.getElementById("market-status");
     this.lastUpdateLabel = document.getElementById("last-update-label");
     this.loadingOverlay = document.getElementById("loading-overlay");
 
@@ -32,7 +31,6 @@ class BazaarApp {
   }
 
   attachEventListeners() {
-    this.refreshBtn.addEventListener("click", () => this.refreshAllData());
     this.indexSelector.addEventListener("change", () =>
       this.refreshGainersLosers()
     );
@@ -42,62 +40,98 @@ class BazaarApp {
   }
 
   async startApp() {
-    await this.refreshAllData();
-    this.startAutoRefresh();
+    // Initial load
+    await this.refreshTickers();
+    await this.loadInitialData();
+
+    // Start ticker auto-refresh (every 3 seconds)
+    this.startTickerAutoRefresh();
   }
 
   showLoading() {
     this.loadingOverlay.classList.remove("hidden");
-    this.refreshBtn.disabled = true;
-    this.statusLabel.textContent = "⏳ Refreshing data...";
   }
 
   hideLoading() {
     this.loadingOverlay.classList.add("hidden");
-    this.refreshBtn.disabled = false;
   }
 
-  async refreshAllData() {
-    if (this.isRefreshing) return;
-
-    this.isRefreshing = true;
+  async loadInitialData() {
     this.showLoading();
 
     try {
+      // Load initial data for gainers/losers, sentiment, and sectoral
       await Promise.all([
-        this.refreshTickers(),
         this.refreshGainersLosers(),
         this.refreshSentiment(),
         this.refreshSectoral(),
       ]);
 
       const now = new Date();
-      this.lastUpdateLabel.textContent = `Last Updated: ${now.toLocaleString()}`;
-      this.statusLabel.textContent = "✓ Data refreshed successfully";
+      this.lastUpdateLabel.textContent = `Loaded: ${now.toLocaleString()}`;
     } catch (error) {
-      console.error("Error refreshing data:", error);
-      this.statusLabel.textContent = `❌ Error: ${error.message}`;
+      console.error("Error loading initial data:", error);
     } finally {
-      this.isRefreshing = false;
       this.hideLoading();
     }
   }
 
   async refreshTickers() {
+    if (this.isRefreshingTickers) return;
+
+    this.isRefreshingTickers = true;
+
     try {
       const data = await window.api.getMarketData();
-      this.tickersContainer.innerHTML = "";
+      const indices = ["NIFTY50", "BANKNIFTY", "MIDCAP100", "SMALLCAP250"];
 
-      ["NIFTY50", "BANKNIFTY", "MIDCAP100", "SMALLCAP250"].forEach((index) => {
-        if (data[index]) {
-          const card = UIComponents.createTickerCard(data[index]);
-          this.tickersContainer.appendChild(card);
-        }
-      });
+      // Check if this is first load
+      const isFirstLoad = this.tickersContainer.children.length === 0;
+
+      if (isFirstLoad) {
+        // First load - create all cards
+        this.tickersContainer.innerHTML = "";
+        indices.forEach((index) => {
+          if (data[index]) {
+            const card = UIComponents.createTickerCard(data[index]);
+            this.tickersContainer.appendChild(card);
+          }
+        });
+      } else {
+        // Update existing cards with animation
+        indices.forEach((index) => {
+          if (data[index]) {
+            const existingCard = this.tickersContainer.querySelector(
+              `[data-index-name="${data[index].name}"]`
+            );
+            if (existingCard) {
+              UIComponents.updateTickerCard(existingCard, data[index]);
+            } else {
+              // Card doesn't exist, create it
+              const card = UIComponents.createTickerCard(data[index]);
+              this.tickersContainer.appendChild(card);
+            }
+          }
+        });
+      }
+
+      // Update market status
+      if (data.marketStatus) {
+        const isOpen = data.marketStatus === "OPEN";
+        const statusEmoji = isOpen ? "🟢" : "🔴";
+        const statusText = isOpen ? "OPEN" : "CLOSED";
+        this.marketStatus.textContent = `${statusEmoji} Market: ${statusText}`;
+        // Using bright colors with high contrast against blue header background
+        this.marketStatus.style.color = isOpen ? "#69F0AE" : "#FF8A80";
+        this.marketStatus.style.fontWeight = "bold";
+        this.marketStatus.style.textShadow = "1px 1px 2px rgba(0, 0, 0, 0.5)";
+      }
     } catch (error) {
       console.error("Error refreshing tickers:", error);
       this.tickersContainer.innerHTML =
         '<div class="error-message">Failed to load index data</div>';
+    } finally {
+      this.isRefreshingTickers = false;
     }
   }
 
@@ -220,14 +254,14 @@ class BazaarApp {
     }
   }
 
-  startAutoRefresh() {
-    if (this.autoRefreshTimer) {
-      clearInterval(this.autoRefreshTimer);
+  startTickerAutoRefresh() {
+    if (this.tickerRefreshTimer) {
+      clearInterval(this.tickerRefreshTimer);
     }
 
-    this.autoRefreshTimer = setInterval(() => {
-      this.refreshAllData();
-    }, this.refreshInterval);
+    this.tickerRefreshTimer = setInterval(() => {
+      this.refreshTickers();
+    }, this.tickerRefreshInterval);
   }
 }
 

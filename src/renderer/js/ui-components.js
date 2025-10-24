@@ -7,6 +7,7 @@ const UIComponents = {
   createTickerCard(data) {
     const card = document.createElement("div");
     card.className = "ticker-card";
+    card.dataset.indexName = data.name;
 
     const name = document.createElement("div");
     name.className = "ticker-name";
@@ -15,6 +16,7 @@ const UIComponents = {
     const price = document.createElement("div");
     price.className = "ticker-price";
     price.textContent = data.price.toFixed(2);
+    price.dataset.value = data.price;
 
     const change = document.createElement("div");
     const isPositive = data.change >= 0;
@@ -36,6 +38,56 @@ const UIComponents = {
     card.appendChild(info);
 
     return card;
+  },
+
+  /**
+   * Update ticker card with animation
+   */
+  updateTickerCard(card, data) {
+    const priceElement = card.querySelector(".ticker-price");
+    const changeElement = card.querySelector(".ticker-change");
+    const infoElement = card.querySelector(".ticker-info");
+
+    const oldPrice = parseFloat(priceElement.dataset.value);
+    const newPrice = data.price;
+
+    // Update price with animation if changed
+    if (oldPrice !== newPrice) {
+      // Remove old animation classes
+      priceElement.classList.remove("price-up", "price-down");
+      card.classList.remove("updating");
+
+      // Trigger reflow to restart animation
+      void priceElement.offsetWidth;
+
+      // Add animation class based on direction
+      if (newPrice > oldPrice) {
+        priceElement.classList.add("price-up");
+      } else if (newPrice < oldPrice) {
+        priceElement.classList.add("price-down");
+      }
+
+      card.classList.add("updating");
+
+      // Update the displayed value
+      priceElement.textContent = newPrice.toFixed(2);
+      priceElement.dataset.value = newPrice;
+    }
+
+    // Update change
+    const isPositive = data.change >= 0;
+    changeElement.className = `ticker-change ${
+      isPositive ? "positive" : "negative"
+    }`;
+    const arrow = isPositive ? "▲" : "▼";
+    changeElement.textContent = `${arrow} ${Math.abs(data.change).toFixed(
+      2
+    )} (${Math.abs(data.change_pct).toFixed(2)}%)`;
+
+    // Update info
+    infoElement.textContent = `Open: ${data.open.toFixed(
+      2
+    )} | High: ${data.high.toFixed(2)} | Low: ${data.low.toFixed(2)}`;
   },
 
   /**

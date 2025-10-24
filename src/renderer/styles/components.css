@@ -12,6 +12,7 @@
   border: 2px inset var(--xp-button);
   padding: 15px;
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .ticker-name {
@@ -24,17 +25,72 @@
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .ticker-change {
   font-size: 11px;
   font-weight: bold;
   margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .ticker-info {
   font-size: 9px;
   color: var(--xp-gray);
+}
+
+/* Animation for value changes */
+@keyframes priceUp {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    color: #00cc00;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes priceDown {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    color: #ff0000;
+    text-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cardPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 123, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(0, 123, 255, 0);
+  }
+}
+
+.ticker-price.price-up {
+  animation: priceUp 0.6s ease;
+}
+
+.ticker-price.price-down {
+  animation: priceDown 0.6s ease;
+}
+
+.ticker-card.updating {
+  animation: cardPulse 0.6s ease;
 }
 
 /* Gainers & Losers Section */
