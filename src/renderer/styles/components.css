@@ -149,6 +149,7 @@
   padding: 5px 10px;
   align-items: center;
   border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.3s ease;
 }
 
 .stock-item:nth-child(even) {
@@ -163,12 +164,81 @@
 .stock-price {
   font-size: 10px;
   text-align: right;
+  transition: all 0.3s ease;
 }
 
 .stock-change {
   font-size: 10px;
   font-weight: bold;
   text-align: right;
+  transition: all 0.3s ease;
+}
+
+/* Value flash animations for stock items */
+@keyframes valueFlashUp {
+  0% {
+    color: inherit;
+    transform: scale(1);
+  }
+  25% {
+    color: #00cc00;
+    transform: scale(1.08);
+    font-weight: bold;
+  }
+  50% {
+    color: #00ff00;
+    transform: scale(1.1);
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+  }
+  75% {
+    color: #00cc00;
+    transform: scale(1.05);
+    font-weight: bold;
+  }
+  100% {
+    color: inherit;
+    transform: scale(1);
+  }
+}
+
+@keyframes valueFlashDown {
+  0% {
+    color: inherit;
+    transform: scale(1);
+  }
+  25% {
+    color: #ff3333;
+    transform: scale(1.08);
+    font-weight: bold;
+  }
+  50% {
+    color: #ff0000;
+    transform: scale(1.1);
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+  }
+  75% {
+    color: #ff3333;
+    transform: scale(1.05);
+    font-weight: bold;
+  }
+  100% {
+    color: inherit;
+    transform: scale(1);
+  }
+}
+
+.stock-price.value-flash-up,
+.stock-change.value-flash-up {
+  animation: valueFlashUp 0.6s ease;
+  display: inline-block;
+}
+
+.stock-price.value-flash-down,
+.stock-change.value-flash-down {
+  animation: valueFlashDown 0.6s ease;
+  display: inline-block;
 }
 
 /* Market Sentiment Section */

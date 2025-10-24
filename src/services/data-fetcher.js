@@ -390,46 +390,46 @@ async function getGainersLosers({
 }) {
   try {
     if (timePeriod === "1D") {
-      // FAST PATH: Use pre-open market data (already has ALL stocks)
-      console.log(`Fetching gainers/losers for ${index} (1D) - FAST MODE`);
+      // FAST PATH: Use LIVE market data from NSE index endpoint
+      console.log(`Fetching gainers/losers for ${index} (1D) - LIVE DATA`);
 
-      const preOpenData = await nseIndia.getPreOpenMarketData();
+      // Map our index names to NSE API index names
+      const indexMapping = {
+        NIFTY50: "NIFTY%2050",
+        BANKNIFTY: "NIFTY%20BANK",
+        MIDCAP100: "NIFTY%20MIDCAP%20100",
+        SMALLCAP250: "NIFTY%20SMLCAP%20250",
+      };
 
-      if (
-        !preOpenData ||
-        !preOpenData.data ||
-        !Array.isArray(preOpenData.data)
-      ) {
-        throw new Error("Invalid pre-open market data");
+      const nseIndexName = indexMapping[index];
+      if (!nseIndexName) {
+        throw new Error(`Unknown index: ${index}`);
       }
 
-      // Get our index constituents for filtering
-      const constituents = await getIndexConstituents(index);
-      const constituentSet = new Set(
-        constituents.map((s) => s.replace(".NS", ""))
+      // Fetch LIVE data from NSE index endpoint
+      const result = await nseIndia.getDataByEndpoint(
+        `/api/equity-stockIndices?index=${nseIndexName}`
       );
 
-      // Filter pre-open data by our index constituents
-      const indexStocks = preOpenData.data
-        .filter(
-          (item) =>
-            item.metadata &&
-            item.metadata.symbol &&
-            constituentSet.has(item.metadata.symbol)
-        )
+      if (!result || !result.data || !Array.isArray(result.data)) {
+        throw new Error(`Invalid response for index: ${index}`);
+      }
+
+      // Extract stock data with LIVE prices (skip first item which is the index itself)
+      const indexStocks = result.data
+        .slice(1) // Skip the index itself
+        .filter((item) => item.symbol && item.symbol !== index)
         .map((item) => ({
-          symbol: item.metadata.symbol,
-          price: parseFloat(item.metadata.lastPrice) || 0,
-          change_pct: parseFloat(item.metadata.pChange) || 0,
+          symbol: item.symbol,
+          price: parseFloat(item.lastPrice) || 0,
+          change_pct: parseFloat(item.pChange) || 0,
         }))
         .filter((stock) => stock.price > 0);
 
       // Sort by change percentage
       indexStocks.sort((a, b) => b.change_pct - a.change_pct);
 
-      console.log(
-        `✓ Instantly got ${indexStocks.length} stocks from pre-open data`
-      );
+      console.log(`✓ Got ${indexStocks.length} stocks with LIVE market data`);
 
       return {
         gainers: indexStocks.slice(0, limit),

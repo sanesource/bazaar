@@ -1,5 +1,52 @@
 // UI Component builders
 
+// Number formatting utilities
+const NumberFormatter = {
+  /**
+   * Format number with Indian numbering system (lakhs, crores)
+   * Example: 12345.67 -> 12,345.67
+   */
+  formatIndian(num, decimals = 2) {
+    if (num === null || num === undefined || isNaN(num)) return "0.00";
+
+    const numStr = num.toFixed(decimals);
+    const [intPart, decPart] = numStr.split(".");
+
+    // Indian numbering: last 3 digits, then groups of 2
+    let formattedInt = intPart;
+    if (intPart.length > 3) {
+      const lastThree = intPart.slice(-3);
+      const remaining = intPart.slice(0, -3);
+      formattedInt =
+        remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree;
+    }
+
+    return decPart ? `${formattedInt}.${decPart}` : formattedInt;
+  },
+
+  /**
+   * Format large numbers in compact form (K, L, Cr)
+   */
+  formatCompact(num) {
+    if (num === null || num === undefined || isNaN(num)) return "0";
+
+    const absNum = Math.abs(num);
+    const sign = num < 0 ? "-" : "";
+
+    if (absNum >= 10000000) {
+      // Crores
+      return `${sign}${(absNum / 10000000).toFixed(2)} Cr`;
+    } else if (absNum >= 100000) {
+      // Lakhs
+      return `${sign}${(absNum / 100000).toFixed(2)} L`;
+    } else if (absNum >= 1000) {
+      // Thousands
+      return `${sign}${(absNum / 1000).toFixed(2)} K`;
+    }
+    return `${sign}${absNum.toFixed(2)}`;
+  },
+};
+
 const UIComponents = {
   /**
    * Create a ticker card element
@@ -15,22 +62,24 @@ const UIComponents = {
 
     const price = document.createElement("div");
     price.className = "ticker-price";
-    price.textContent = data.price.toFixed(2);
+    price.textContent = NumberFormatter.formatIndian(data.price);
     price.dataset.value = data.price;
 
     const change = document.createElement("div");
     const isPositive = data.change >= 0;
     change.className = `ticker-change ${isPositive ? "positive" : "negative"}`;
     const arrow = isPositive ? "▲" : "▼";
-    change.textContent = `${arrow} ${Math.abs(data.change).toFixed(
-      2
+    change.textContent = `${arrow} ${NumberFormatter.formatIndian(
+      Math.abs(data.change)
     )} (${Math.abs(data.change_pct).toFixed(2)}%)`;
 
     const info = document.createElement("div");
     info.className = "ticker-info";
-    info.textContent = `Open: ${data.open.toFixed(
-      2
-    )} | High: ${data.high.toFixed(2)} | Low: ${data.low.toFixed(2)}`;
+    info.textContent = `Open: ${NumberFormatter.formatIndian(
+      data.open
+    )} | High: ${NumberFormatter.formatIndian(
+      data.high
+    )} | Low: ${NumberFormatter.formatIndian(data.low)}`;
 
     card.appendChild(name);
     card.appendChild(price);
@@ -70,7 +119,7 @@ const UIComponents = {
       card.classList.add("updating");
 
       // Update the displayed value
-      priceElement.textContent = newPrice.toFixed(2);
+      priceElement.textContent = NumberFormatter.formatIndian(newPrice);
       priceElement.dataset.value = newPrice;
     }
 
@@ -80,14 +129,16 @@ const UIComponents = {
       isPositive ? "positive" : "negative"
     }`;
     const arrow = isPositive ? "▲" : "▼";
-    changeElement.textContent = `${arrow} ${Math.abs(data.change).toFixed(
-      2
+    changeElement.textContent = `${arrow} ${NumberFormatter.formatIndian(
+      Math.abs(data.change)
     )} (${Math.abs(data.change_pct).toFixed(2)}%)`;
 
     // Update info
-    infoElement.textContent = `Open: ${data.open.toFixed(
-      2
-    )} | High: ${data.high.toFixed(2)} | Low: ${data.low.toFixed(2)}`;
+    infoElement.textContent = `Open: ${NumberFormatter.formatIndian(
+      data.open
+    )} | High: ${NumberFormatter.formatIndian(
+      data.high
+    )} | Low: ${NumberFormatter.formatIndian(data.low)}`;
   },
 
   /**
@@ -96,6 +147,7 @@ const UIComponents = {
   createStockItem(stock) {
     const item = document.createElement("div");
     item.className = "stock-item";
+    item.dataset.symbol = stock.symbol;
 
     const symbol = document.createElement("div");
     symbol.className = "stock-symbol";
@@ -103,7 +155,8 @@ const UIComponents = {
 
     const price = document.createElement("div");
     price.className = "stock-price";
-    price.textContent = `₹${stock.price.toFixed(2)}`;
+    price.textContent = `₹${NumberFormatter.formatIndian(stock.price)}`;
+    price.dataset.value = stock.price;
 
     const change = document.createElement("div");
     const changePct = stock.change_pct;
@@ -111,12 +164,63 @@ const UIComponents = {
     change.className = `stock-change ${isPositive ? "positive" : "negative"}`;
     const arrow = isPositive ? "▲" : "▼";
     change.textContent = `${arrow} ${Math.abs(changePct).toFixed(2)}%`;
+    change.dataset.value = changePct;
 
     item.appendChild(symbol);
     item.appendChild(price);
     item.appendChild(change);
 
     return item;
+  },
+
+  /**
+   * Update stock list item with animation
+   */
+  updateStockItem(item, stock) {
+    const priceElement = item.querySelector(".stock-price");
+    const changeElement = item.querySelector(".stock-change");
+
+    const oldPrice = parseFloat(priceElement.dataset.value);
+    const newPrice = stock.price;
+    const oldChangePct = parseFloat(changeElement.dataset.value);
+    const newChangePct = stock.change_pct;
+
+    // Update price with animation if changed
+    if (oldPrice !== newPrice) {
+      priceElement.classList.remove("value-flash-up", "value-flash-down");
+      void priceElement.offsetWidth; // Trigger reflow
+
+      if (newPrice > oldPrice) {
+        priceElement.classList.add("value-flash-up");
+      } else if (newPrice < oldPrice) {
+        priceElement.classList.add("value-flash-down");
+      }
+
+      priceElement.textContent = `₹${NumberFormatter.formatIndian(newPrice)}`;
+      priceElement.dataset.value = newPrice;
+    }
+
+    // Update change with animation
+    if (oldChangePct !== newChangePct) {
+      changeElement.classList.remove("value-flash-up", "value-flash-down");
+      void changeElement.offsetWidth; // Trigger reflow
+
+      if (newChangePct > oldChangePct) {
+        changeElement.classList.add("value-flash-up");
+      } else if (newChangePct < oldChangePct) {
+        changeElement.classList.add("value-flash-down");
+      }
+    }
+
+    const isPositive = newChangePct >= 0;
+    changeElement.className = `stock-change ${
+      isPositive ? "positive" : "negative"
+    }`;
+    const arrow = isPositive ? "▲" : "▼";
+    changeElement.textContent = `${arrow} ${Math.abs(newChangePct).toFixed(
+      2
+    )}%`;
+    changeElement.dataset.value = newChangePct;
   },
 
   /**

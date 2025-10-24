@@ -3,8 +3,12 @@
 class BazaarApp {
   constructor() {
     this.tickerRefreshInterval = 3000; // 3 seconds for tickers
+    this.gainersLosersRefreshInterval = 5000; // 5 seconds for gainers/losers
     this.tickerRefreshTimer = null;
+    this.gainersLosersRefreshTimer = null;
     this.isRefreshingTickers = false;
+    this.isRefreshingGainersLosers = false;
+    this.isMarketOpen = false;
 
     this.initializeElements();
     this.attachEventListeners();
@@ -23,6 +27,9 @@ class BazaarApp {
     this.gainersList = document.getElementById("gainers-list");
     this.losersList = document.getElementById("losers-list");
     this.sectoralContainer = document.getElementById("sectoral-container");
+    this.gainersRefreshIndicator = document.getElementById(
+      "gainers-refresh-indicator"
+    );
 
     this.vixValue = document.getElementById("vix-value");
     this.vixChange = document.getElementById("vix-change");
@@ -31,12 +38,14 @@ class BazaarApp {
   }
 
   attachEventListeners() {
-    this.indexSelector.addEventListener("change", () =>
-      this.refreshGainersLosers()
-    );
-    this.timeSelector.addEventListener("change", () =>
-      this.refreshGainersLosers()
-    );
+    this.indexSelector.addEventListener("change", () => {
+      this.refreshGainersLosers();
+      this.manageGainersLosersAutoRefresh();
+    });
+    this.timeSelector.addEventListener("change", () => {
+      this.refreshGainersLosers();
+      this.manageGainersLosersAutoRefresh();
+    });
   }
 
   async startApp() {
@@ -46,6 +55,9 @@ class BazaarApp {
 
     // Start ticker auto-refresh (every 3 seconds)
     this.startTickerAutoRefresh();
+
+    // Start gainers/losers auto-refresh if conditions are met
+    this.manageGainersLosersAutoRefresh();
   }
 
   showLoading() {
@@ -118,6 +130,8 @@ class BazaarApp {
       // Update market status
       if (data.marketStatus) {
         const isOpen = data.marketStatus === "OPEN";
+        this.isMarketOpen = isOpen;
+
         const statusEmoji = isOpen ? "🟢" : "🔴";
         const statusText = isOpen ? "OPEN" : "CLOSED";
         this.marketStatus.textContent = `${statusEmoji} Market: ${statusText}`;
@@ -125,6 +139,9 @@ class BazaarApp {
         this.marketStatus.style.color = isOpen ? "#69F0AE" : "#FF8A80";
         this.marketStatus.style.fontWeight = "bold";
         this.marketStatus.style.textShadow = "1px 1px 2px rgba(0, 0, 0, 0.5)";
+
+        // Manage gainers/losers auto-refresh based on market status
+        this.manageGainersLosersAutoRefresh();
       }
     } catch (error) {
       console.error("Error refreshing tickers:", error);
@@ -136,38 +153,57 @@ class BazaarApp {
   }
 
   async refreshGainersLosers() {
+    if (this.isRefreshingGainersLosers) return;
+
+    this.isRefreshingGainersLosers = true;
+
     try {
       const index = this.indexSelector.value;
       const timePeriod = this.timeSelector.value;
 
-      this.gainersList.innerHTML =
-        '<div class="loading-text">⏳ Loading...</div>';
-      this.losersList.innerHTML =
-        '<div class="loading-text">⏳ Loading...</div>';
+      // Check if this is first load
+      const isFirstLoad =
+        this.gainersList.children.length === 0 ||
+        this.gainersList.querySelector(".loading-text") !== null;
+
+      if (isFirstLoad) {
+        // First load - show loading
+        this.gainersList.innerHTML =
+          '<div class="loading-text">⏳ Loading...</div>';
+        this.losersList.innerHTML =
+          '<div class="loading-text">⏳ Loading...</div>';
+      }
 
       const data = await window.api.getGainersLosers({ index, timePeriod });
 
-      this.gainersList.innerHTML = "";
-      this.losersList.innerHTML = "";
+      if (isFirstLoad) {
+        // First load - create all items
+        this.gainersList.innerHTML = "";
+        this.losersList.innerHTML = "";
 
-      if (data.gainers && data.gainers.length > 0) {
-        data.gainers.forEach((stock) => {
-          const item = UIComponents.createStockItem(stock);
-          this.gainersList.appendChild(item);
-        });
-      } else {
-        this.gainersList.innerHTML =
-          '<div class="empty-message">No data available</div>';
-      }
+        if (data.gainers && data.gainers.length > 0) {
+          data.gainers.forEach((stock) => {
+            const item = UIComponents.createStockItem(stock);
+            this.gainersList.appendChild(item);
+          });
+        } else {
+          this.gainersList.innerHTML =
+            '<div class="empty-message">No data available</div>';
+        }
 
-      if (data.losers && data.losers.length > 0) {
-        data.losers.forEach((stock) => {
-          const item = UIComponents.createStockItem(stock);
-          this.losersList.appendChild(item);
-        });
+        if (data.losers && data.losers.length > 0) {
+          data.losers.forEach((stock) => {
+            const item = UIComponents.createStockItem(stock);
+            this.losersList.appendChild(item);
+          });
+        } else {
+          this.losersList.innerHTML =
+            '<div class="empty-message">No data available</div>';
+        }
       } else {
-        this.losersList.innerHTML =
-          '<div class="empty-message">No data available</div>';
+        // Update existing items in-place (no layout shift)
+        this.updateStockListInPlace(this.gainersList, data.gainers);
+        this.updateStockListInPlace(this.losersList, data.losers);
       }
     } catch (error) {
       console.error("Error refreshing gainers/losers:", error);
@@ -175,6 +211,44 @@ class BazaarApp {
         '<div class="error-message">Failed to load</div>';
       this.losersList.innerHTML =
         '<div class="error-message">Failed to load</div>';
+    } finally {
+      this.isRefreshingGainersLosers = false;
+    }
+  }
+
+  updateStockListInPlace(listElement, newStocks) {
+    if (!newStocks || newStocks.length === 0) {
+      return;
+    }
+
+    const existingItems = Array.from(
+      listElement.querySelectorAll(".stock-item")
+    );
+
+    // Update or create items for each position
+    newStocks.forEach((stock, index) => {
+      const existingItem = existingItems[index];
+
+      if (existingItem) {
+        // Check if it's the same symbol
+        if (existingItem.dataset.symbol === stock.symbol) {
+          // Same stock, just update values
+          UIComponents.updateStockItem(existingItem, stock);
+        } else {
+          // Different stock, replace the item
+          const newItem = UIComponents.createStockItem(stock);
+          listElement.replaceChild(newItem, existingItem);
+        }
+      } else {
+        // Need to create a new item
+        const newItem = UIComponents.createStockItem(stock);
+        listElement.appendChild(newItem);
+      }
+    });
+
+    // Remove extra items if new list is shorter
+    while (listElement.children.length > newStocks.length) {
+      listElement.removeChild(listElement.lastChild);
     }
   }
 
@@ -183,15 +257,15 @@ class BazaarApp {
       const vixData = await window.api.getVixData();
 
       if (vixData) {
-        this.vixValue.textContent = vixData.price.toFixed(2);
+        this.vixValue.textContent = NumberFormatter.formatIndian(vixData.price);
 
         const change = vixData.change;
         const changePct = vixData.change_pct;
         const arrow = change >= 0 ? "▲" : "▼";
         const color = change >= 0 ? "negative" : "positive";
 
-        this.vixChange.textContent = `${arrow} ${Math.abs(change).toFixed(
-          2
+        this.vixChange.textContent = `${arrow} ${NumberFormatter.formatIndian(
+          Math.abs(change)
         )} (${Math.abs(changePct).toFixed(2)}%)`;
         this.vixChange.className = `card-change ${color}`;
 
@@ -262,6 +336,45 @@ class BazaarApp {
     this.tickerRefreshTimer = setInterval(() => {
       this.refreshTickers();
     }, this.tickerRefreshInterval);
+  }
+
+  manageGainersLosersAutoRefresh() {
+    const timePeriod = this.timeSelector.value;
+    const shouldAutoRefresh = this.isMarketOpen && timePeriod === "1D";
+
+    console.log(
+      `[Gainers/Losers] Market Open: ${this.isMarketOpen}, Time Period: ${timePeriod}, Should Auto-Refresh: ${shouldAutoRefresh}`
+    );
+
+    if (shouldAutoRefresh) {
+      // Start auto-refresh only if not already running
+      if (!this.gainersLosersRefreshTimer) {
+        this.startGainersLosersAutoRefresh();
+        this.gainersRefreshIndicator.style.display = "inline";
+        console.log("✓ Started gainers/losers auto-refresh (5s interval)");
+      }
+    } else {
+      // Stop auto-refresh
+      if (this.gainersLosersRefreshTimer) {
+        clearInterval(this.gainersLosersRefreshTimer);
+        this.gainersLosersRefreshTimer = null;
+        this.gainersRefreshIndicator.style.display = "none";
+        console.log(
+          "✗ Stopped gainers/losers auto-refresh (market closed or non-1D filter)"
+        );
+      }
+    }
+  }
+
+  startGainersLosersAutoRefresh() {
+    if (this.gainersLosersRefreshTimer) {
+      clearInterval(this.gainersLosersRefreshTimer);
+    }
+
+    this.gainersLosersRefreshTimer = setInterval(() => {
+      console.log("[Gainers/Losers] Auto-refreshing...");
+      this.refreshGainersLosers();
+    }, this.gainersLosersRefreshInterval);
   }
 }
 
