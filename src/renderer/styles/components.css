@@ -47,7 +47,7 @@
   }
   50% {
     transform: scale(1.15);
-    color: #00cc00;
+    color: var(--xp-positive);
     text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
   }
   100% {
@@ -61,7 +61,7 @@
   }
   50% {
     transform: scale(1.15);
-    color: #ff0000;
+    color: var(--xp-negative);
     text-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
   }
   100% {
@@ -114,8 +114,8 @@
 .loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #007acc;
+  border: 2px solid var(--xp-button);
+  border-top: 2px solid var(--xp-header);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -176,12 +176,12 @@
   gap: 10px;
   padding: 5px 10px;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--xp-border);
   transition: background-color 0.3s ease;
 }
 
 .stock-item:nth-child(even) {
-  background-color: #f8f8f8;
+  background-color: var(--xp-button-hover);
 }
 
 .stock-symbol {
@@ -209,18 +209,18 @@
     transform: scale(1);
   }
   25% {
-    color: #00cc00;
+    color: var(--xp-positive);
     transform: scale(1.08);
     font-weight: bold;
   }
   50% {
-    color: #00ff00;
+    color: var(--xp-positive);
     transform: scale(1.1);
     font-weight: bold;
     text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
   }
   75% {
-    color: #00cc00;
+    color: var(--xp-positive);
     transform: scale(1.05);
     font-weight: bold;
   }
@@ -236,18 +236,18 @@
     transform: scale(1);
   }
   25% {
-    color: #ff3333;
+    color: var(--xp-negative);
     transform: scale(1.08);
     font-weight: bold;
   }
   50% {
-    color: #ff0000;
+    color: var(--xp-negative);
     transform: scale(1.1);
     font-weight: bold;
     text-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
   }
   75% {
-    color: #ff3333;
+    color: var(--xp-negative);
     transform: scale(1.05);
     font-weight: bold;
   }
@@ -327,11 +327,11 @@
   gap: 15px;
   padding: 8px 12px;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--xp-border);
 }
 
 .sector-row.even {
-  background-color: #f8f8f8;
+  background-color: var(--xp-button-hover);
 }
 
 .sector-name {

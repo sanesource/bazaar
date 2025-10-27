@@ -9,10 +9,11 @@
     />
     <title>Bazaar - Indian Stock Market</title>
     <link rel="stylesheet" href="styles/winxp.css" />
+    <link rel="stylesheet" href="styles/themes.css" />
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/components.css" />
   </head>
-  <body>
+  <body class="theme-light">
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
       <div class="loading-container">
@@ -30,6 +31,10 @@
           <h1 class="header-title">🏛️ Bazaar - Indian Stock Market Dashboard</h1>
         </div>
         <div class="header-right">
+          <select id="theme-selector" class="theme-selector">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
           <span id="market-status" class="status-label">Market: Loading...</span>
         </div>
       </header>

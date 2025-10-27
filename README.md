@@ -1,6 +1,6 @@
 # 🏛️ Bazaar - Indian Stock Market Dashboard
 
-A lightweight, cross-platform Electron desktop application for displaying real-time Indian stock market information with a nostalgic Windows XP-style interface.
+A lightweight, cross-platform Electron desktop application for displaying real-time Indian stock market information with a classic light interface.
 
 ![Bazaar Screenshot](https://github.com/user-attachments/assets/7bd10f5e-cacd-4087-a841-95d28551f0d5)
 
@@ -10,7 +10,7 @@ A lightweight, cross-platform Electron desktop application for displaying real-t
 - 🔥 **Top Gainers & Losers** - Dynamic stock lists with time period filters
 - 😰 **Market Sentiment** - India VIX and Fear/Greed meter
 - 🏭 **Sectoral Performance** - Visual sector charts
-- 🎨 **Windows XP Theme** - Classic nostalgic interface
+- 🎨 **Multiple Themes** - Light classic and Dark terminal themes
 - ⚡ **Auto-Refresh** - Updates every 60 seconds
 - 🌐 **Real NSE Data** - Uses official NSE India API
 
@@ -84,7 +84,7 @@ All documentation is in the [`docs/`](docs/) folder:
 - **Electron** (v28+) - Desktop framework
 - **Node.js** - JavaScript runtime
 - **stock-nse-india** - NSE India API for real-time data
-- **HTML5/CSS3** - UI structure and Windows XP theme
+- **HTML5/CSS3** - UI structure and Light theme
 - **Vanilla JavaScript** - No frameworks for minimal size
 
 ## 🎯 Key Features
@@ -152,7 +152,7 @@ For informational purposes only. Not financial advice. Always consult a qualifie
 
 - **NSE India** - Official market data API
 - **Electron.js** - Cross-platform framework
-- **Windows XP** - UI design inspiration
+- **Light** - UI design inspiration
 
 ---
 

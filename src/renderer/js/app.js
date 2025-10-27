@@ -41,6 +41,10 @@ class BazaarApp {
     this.vixChange = document.getElementById("vix-change");
     this.greedScore = document.getElementById("greed-score");
     this.greedStatus = document.getElementById("greed-status");
+
+    // Theme elements
+    this.themeSelector = document.getElementById("theme-selector");
+    this.body = document.body;
   }
 
   attachEventListeners() {
@@ -55,9 +59,17 @@ class BazaarApp {
     this.sectoralTimeSelector.addEventListener("change", () => {
       this.refreshSectoral();
     });
+
+    // Theme selector event listener
+    this.themeSelector.addEventListener("change", () => {
+      this.switchTheme(this.themeSelector.value);
+    });
   }
 
   async startApp() {
+    // Initialize theme from localStorage
+    this.initializeTheme();
+
     // Initial load
     await this.refreshTickers();
     await this.loadInitialData();
@@ -423,6 +435,32 @@ class BazaarApp {
       console.log("[Gainers/Losers] Auto-refreshing...");
       this.refreshGainersLosers();
     }, this.gainersLosersRefreshInterval);
+  }
+
+  // Theme Management Methods
+  initializeTheme() {
+    // Get saved theme from localStorage or default to light
+    const savedTheme = localStorage.getItem("bazaar-theme") || "light";
+
+    // Set the theme selector value
+    this.themeSelector.value = savedTheme;
+
+    // Apply the theme
+    this.switchTheme(savedTheme);
+  }
+
+  switchTheme(themeName) {
+    // Remove existing theme classes
+    this.body.classList.remove("theme-light", "theme-dark");
+
+    // Add new theme class
+    const themeClass = `theme-${themeName}`;
+    this.body.classList.add(themeClass);
+
+    // Save theme preference to localStorage
+    localStorage.setItem("bazaar-theme", themeName);
+
+    console.log(`Theme switched to: ${themeName}`);
   }
 }
 

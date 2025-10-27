@@ -1,0 +1,424 @@
+/* Theme System - CSS Variables for Multiple Themes */
+
+/* Light Theme Variables */
+.theme-light {
+  --theme-bg: #ece9d8;
+  --theme-fg: #000000;
+  --theme-button: #d4d0c8;
+  --theme-button-hover: #e8e4d8;
+  --theme-header: #0054e3;
+  --theme-header-text: #ffffff;
+  --theme-border: #7a96df;
+  --theme-positive: #00aa00;
+  --theme-negative: #cc0000;
+  --theme-text-bg: #ffffff;
+  --theme-gray: #666666;
+  --theme-font: "Tahoma", "MS Sans Serif", Arial, sans-serif;
+  --theme-section-bg: #ece9d8;
+  --theme-card-bg: #ffffff;
+  --theme-shadow: rgba(0, 0, 0, 0.1);
+  --theme-scrollbar-track: #ece9d8;
+  --theme-scrollbar-thumb: #d4d0c8;
+  --theme-loading-bg: rgba(236, 233, 216, 0.9);
+
+  /* Map theme variables to xp variables for compatibility */
+  --xp-bg: var(--theme-bg);
+  --xp-fg: var(--theme-fg);
+  --xp-button: var(--theme-button);
+  --xp-button-hover: var(--theme-button-hover);
+  --xp-header: var(--theme-header);
+  --xp-header-text: var(--theme-header-text);
+  --xp-border: var(--theme-border);
+  --xp-positive: var(--theme-positive);
+  --xp-negative: var(--theme-negative);
+  --xp-text-bg: var(--theme-text-bg);
+  --xp-gray: var(--theme-gray);
+  --xp-font: var(--theme-font);
+  --xp-loading-bg: var(--theme-loading-bg);
+}
+
+/* Dark Theme Variables */
+.theme-dark {
+  --theme-bg: #1a1a1a;
+  --theme-fg: #ffffff;
+  --theme-button: #2a2a2a;
+  --theme-button-hover: #3a3a3a;
+  --theme-header: #c07a00;
+  --theme-header-text: #ffffff;
+  --theme-border: #444444;
+  --theme-positive: #00ff00;
+  --theme-negative: #ff0000;
+  --theme-text-bg: #1a1a1a;
+  --theme-gray: #cccccc;
+  --theme-font: "Courier New", "Monaco", "Consolas", monospace;
+  --theme-section-bg: #1a1a1a;
+  --theme-card-bg: #2a2a2a;
+  --theme-shadow: rgba(0, 255, 0, 0.1);
+  --theme-scrollbar-track: #1a1a1a;
+  --theme-scrollbar-thumb: #444444;
+  --theme-loading-bg: rgba(26, 26, 26, 0.9);
+  --theme-table-header-bg: #333333;
+  --theme-selected-bg: #0066cc;
+
+  /* Map theme variables to xp variables for compatibility */
+  --xp-bg: var(--theme-bg);
+  --xp-fg: var(--theme-fg);
+  --xp-button: var(--theme-button);
+  --xp-button-hover: var(--theme-button-hover);
+  --xp-header: var(--theme-header);
+  --xp-header-text: var(--theme-header-text);
+  --xp-border: var(--theme-border);
+  --xp-positive: var(--theme-positive);
+  --xp-negative: var(--theme-negative);
+  --xp-text-bg: var(--theme-text-bg);
+  --xp-gray: var(--theme-gray);
+  --xp-font: var(--theme-font);
+  --xp-loading-bg: var(--theme-loading-bg);
+}
+
+/* Theme Dropdown Styles */
+.theme-selector {
+  background-color: var(--xp-text-bg);
+  border: 2px inset var(--xp-button);
+  padding: 3px 5px;
+  font-family: var(--xp-font);
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--xp-fg);
+  margin-right: 10px;
+}
+
+.theme-selector:focus {
+  outline: 1px dotted var(--xp-fg);
+  outline-offset: -2px;
+}
+
+.theme-selector option {
+  background-color: var(--xp-text-bg);
+  color: var(--xp-fg);
+}
+
+/* Theme-specific adjustments */
+.theme-dark .section {
+  background-color: var(--theme-section-bg);
+  border: 1px solid var(--theme-border);
+  border-radius: 0;
+}
+
+.theme-dark .section-header {
+  background: var(--theme-header);
+  color: var(--theme-header-text);
+  border-bottom: 1px solid var(--theme-border);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.theme-dark .ticker-card {
+  background-color: var(--theme-card-bg);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+  border-radius: 0;
+}
+
+.theme-dark .ticker-name {
+  color: var(--theme-fg);
+  font-weight: bold;
+}
+
+.theme-dark .ticker-price {
+  color: var(--theme-positive);
+  font-weight: bold;
+}
+
+.theme-dark .ticker-change.positive {
+  color: var(--theme-positive);
+}
+
+.theme-dark .ticker-change.negative {
+  color: var(--theme-negative);
+}
+
+.theme-dark .stock-item {
+  background-color: var(--theme-card-bg);
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+}
+
+.theme-dark .stock-item:nth-child(even) {
+  background-color: var(--theme-bg);
+}
+
+.theme-dark .stock-symbol {
+  color: var(--theme-positive);
+  font-weight: bold;
+}
+
+.theme-dark .stock-price {
+  color: var(--theme-positive);
+  font-weight: bold;
+}
+
+.theme-dark .stock-change.positive {
+  color: var(--theme-positive);
+}
+
+.theme-dark .stock-change.negative {
+  color: var(--theme-negative);
+}
+
+.theme-dark .sentiment-card {
+  background-color: var(--theme-card-bg);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+  border-radius: 0;
+}
+
+.theme-dark .card-title {
+  color: var(--theme-fg);
+  font-weight: bold;
+}
+
+.theme-dark .card-value {
+  color: var(--theme-positive);
+  font-weight: bold;
+}
+
+.theme-dark .card-change.positive {
+  color: var(--theme-positive);
+}
+
+.theme-dark .card-change.negative {
+  color: var(--theme-negative);
+}
+
+.theme-dark .sector-row {
+  background-color: var(--theme-card-bg);
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+}
+
+.theme-dark .sector-row.even {
+  background-color: var(--theme-bg);
+}
+
+.theme-dark .sector-name {
+  color: var(--theme-positive);
+  font-weight: bold;
+}
+
+.theme-dark .sector-change.positive {
+  color: var(--theme-positive);
+}
+
+.theme-dark .sector-change.negative {
+  color: var(--theme-negative);
+}
+
+.theme-dark .loading-overlay {
+  background-color: var(--theme-loading-bg);
+}
+
+.theme-dark .loading-container {
+  background-color: var(--theme-card-bg);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+}
+
+/* Bloomberg Terminal Specific Styling */
+.theme-dark .header {
+  background: var(--theme-header);
+  border: none;
+  border-radius: 0;
+}
+
+.theme-dark .header-title {
+  color: var(--theme-header-text);
+  text-shadow: none;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.theme-dark .status-label {
+  color: var(--theme-header-text);
+  text-shadow: none;
+  font-weight: bold;
+}
+
+.theme-dark .theme-selector {
+  background-color: var(--theme-button);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+  border-radius: 0;
+}
+
+.theme-dark .theme-selector option {
+  background-color: var(--theme-button);
+  color: var(--theme-fg);
+}
+
+.theme-dark .selector-dropdown {
+  background-color: var(--theme-button);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+  border-radius: 0;
+}
+
+.theme-dark .selector-dropdown option {
+  background-color: var(--theme-button);
+  color: var(--theme-fg);
+}
+
+.theme-dark .refresh-btn {
+  background-color: var(--theme-button);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-fg);
+  border-radius: 0;
+}
+
+.theme-dark .refresh-btn:hover {
+  background-color: var(--theme-button-hover);
+}
+
+.theme-dark .footer {
+  background-color: var(--theme-card-bg);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-gray);
+  border-radius: 0;
+}
+
+/* Bloomberg Terminal Data Display */
+.theme-dark .positive {
+  color: var(--theme-positive);
+  text-shadow: none;
+}
+
+.theme-dark .negative {
+  color: var(--theme-negative);
+  text-shadow: none;
+}
+
+.theme-dark .sector-bar.positive {
+  background-color: var(--theme-positive);
+  box-shadow: none;
+}
+
+.theme-dark .sector-bar.negative {
+  background-color: var(--theme-negative);
+  box-shadow: none;
+}
+
+/* Remove all glitter effects for Bloomberg theme */
+.theme-dark .ticker-card {
+  box-shadow: none;
+  transition: none;
+}
+
+.theme-dark .ticker-price,
+.theme-dark .ticker-change,
+.theme-dark .stock-price,
+.theme-dark .stock-change,
+.theme-dark .card-value,
+.theme-dark .card-change,
+.theme-dark .sector-change {
+  text-shadow: none;
+  transition: none;
+}
+
+/* Override animations for Bloomberg theme */
+.theme-dark .ticker-price.price-up,
+.theme-dark .ticker-change.price-up,
+.theme-dark .stock-price.value-flash-up,
+.theme-dark .stock-change.value-flash-up {
+  animation: none;
+  text-shadow: none;
+}
+
+.theme-dark .ticker-price.price-down,
+.theme-dark .ticker-change.price-down,
+.theme-dark .stock-price.value-flash-down,
+.theme-dark .stock-change.value-flash-down {
+  animation: none;
+  text-shadow: none;
+}
+
+.theme-dark .ticker-card.card-pulse {
+  animation: none;
+  box-shadow: none;
+}
+
+/* Remove loading container shadow */
+.theme-dark .loading-container {
+  box-shadow: none;
+}
+
+/* Bloomberg Terminal Typography */
+.theme-dark {
+  font-family: var(--theme-font);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* Remove all transitions and effects for clean terminal look */
+.theme-dark * {
+  transition: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.theme-dark .ticker-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.theme-dark .stock-item:hover {
+  background-color: var(--theme-card-bg);
+}
+
+.theme-dark .refresh-btn:hover {
+  background-color: var(--theme-button-hover);
+  box-shadow: none;
+}
+
+.theme-dark .section-title {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.theme-dark .column-title {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bloomberg Terminal Table Styling */
+.theme-dark .tickers-grid {
+  gap: 10px;
+}
+
+.theme-dark .gainers-losers-grid {
+  gap: 15px;
+}
+
+.theme-dark .sentiment-grid {
+  gap: 15px;
+}
+
+/* Scrollbar styling for Bloomberg theme */
+.theme-dark .scrollable-content::-webkit-scrollbar-track {
+  background: var(--theme-scrollbar-track);
+  border: 1px solid var(--theme-border);
+}
+
+.theme-dark .scrollable-content::-webkit-scrollbar-thumb {
+  background: var(--theme-scrollbar-thumb);
+  border: 1px solid var(--theme-border);
+}
+
+.theme-dark .scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-button-hover);
+}

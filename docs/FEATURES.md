@@ -2,7 +2,7 @@
 
 ## Application Interface
 
-Bazaar features a clean, Windows XP-inspired interface with the following sections:
+Bazaar features a clean, light-inspired interface with the following sections:
 
 ---
 
@@ -138,7 +138,7 @@ TCS       ₹3,680  ▲2.9%  WIPRO    ₹480  ▼2.3%
 
 ---
 
-## 🎨 Windows XP Theme
+## 🎨 Light Theme
 
 **Design elements:**
 
@@ -146,7 +146,7 @@ TCS       ₹3,680  ▲2.9%  WIPRO    ₹480  ▼2.3%
 - Blue title bars (#0054E3)
 - Raised/sunken borders
 - Tahoma font family
-- Button styling reminiscent of Windows XP
+- Button styling reminiscent of classic interfaces
 - Familiar, comfortable interface
 
 ---

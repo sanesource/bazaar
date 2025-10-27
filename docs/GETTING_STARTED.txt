@@ -61,7 +61,7 @@ Executables will be in the dist/ folder.
 ✅ Market sentiment (VIX, Fear/Greed meter)
 ✅ Sectoral performance charts
 ✅ Auto-refresh every 60 seconds
-✅ Windows XP nostalgic theme
+✅ Light nostalgic theme
 ✅ Cross-platform support
 
 ================================================================================

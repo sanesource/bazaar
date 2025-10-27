@@ -136,7 +136,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(236, 233, 216, 0.9);
+  background-color: var(--xp-loading-bg, rgba(236, 233, 216, 0.9));
   display: flex;
   justify-content: center;
   align-items: center;

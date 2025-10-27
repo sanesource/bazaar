@@ -52,7 +52,7 @@ The application will open automatically and start fetching market data.
 - 🔄 **Manual refresh** button
 - 📊 **Index filter** for gainers/losers
 - ⏱️ **Time period filter** (1D, 1Week, 1Month, 6Months, 1Year)
-- 🎨 **Windows XP nostalgic theme**
+- 🎨 **Light nostalgic theme**
 
 ## Troubleshooting
 
