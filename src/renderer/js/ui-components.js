@@ -49,6 +49,23 @@ const NumberFormatter = {
 
 const UIComponents = {
   /**
+   * Get company description (now using real data from Yahoo Finance)
+   */
+  getCompanyDescription(profile) {
+    // Use the real description from Yahoo Finance API
+    if (profile.description && profile.description !== "N/A") {
+      return profile.description;
+    }
+
+    // Fallback to basic description if no real data available
+    return `${
+      profile.companyName
+    } is a ${profile.industry.toLowerCase()} company operating in the ${
+      profile.sector !== "N/A" ? profile.sector : profile.industry
+    } sector.`;
+  },
+
+  /**
    * Create a search result item
    */
   createSearchResultItem(stock) {
@@ -141,9 +158,14 @@ const UIComponents = {
     industryInfo.className = "stock-profile-industry";
     industryInfo.textContent = `${profile.industry} • ${profile.sector}`;
 
+    const description = document.createElement("div");
+    description.className = "stock-profile-description";
+    description.textContent = UIComponents.getCompanyDescription(profile);
+
     titleSection.appendChild(symbol);
     titleSection.appendChild(companyName);
     titleSection.appendChild(industryInfo);
+    titleSection.appendChild(description);
 
     const priceSection = document.createElement("div");
     priceSection.className = "stock-profile-price-section";

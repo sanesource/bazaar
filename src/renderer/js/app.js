@@ -55,6 +55,7 @@ class BazaarApp {
     this.stockProfileScreen = document.getElementById("stock-profile-screen");
     this.stockProfileContent = document.getElementById("stock-profile-content");
     this.backBtn = document.getElementById("back-btn");
+    this.profileTitle = document.getElementById("profile-title");
   }
 
   attachEventListeners() {
@@ -550,6 +551,9 @@ class BazaarApp {
 
   async openStockProfile(symbol) {
     try {
+      // Update the title to show the stock ticker
+      this.profileTitle.textContent = symbol;
+
       // Show screen with loading state
       this.stockProfileContent.innerHTML =
         '<div class="loading-text">⏳ Loading profile...</div>';

@@ -784,6 +784,37 @@ async function getTrendingStocks(limit = 5) {
 }
 
 /**
+ * Get company description from Yahoo Finance
+ */
+async function getCompanyDescription(symbol) {
+  try {
+    // Convert NSE symbol to Yahoo Finance format
+    const yahooSymbol = `${symbol}.NS`;
+
+    // Get company profile from Yahoo Finance
+    const profile = await yahooFinance.quoteSummary(yahooSymbol, {
+      modules: ["assetProfile"],
+    });
+
+    if (
+      profile &&
+      profile.assetProfile &&
+      profile.assetProfile.longBusinessSummary
+    ) {
+      return profile.assetProfile.longBusinessSummary;
+    }
+
+    return null;
+  } catch (error) {
+    console.error(
+      `Error fetching company description for ${symbol}:`,
+      error.message
+    );
+    return null;
+  }
+}
+
+/**
  * Get detailed stock profile
  */
 async function getStockProfile(symbol) {
@@ -805,6 +836,9 @@ async function getStockProfile(symbol) {
     const change = currentPrice - prevClose;
     const changePct = (change / prevClose) * 100;
 
+    // Get real company description from Yahoo Finance
+    const companyDescription = await getCompanyDescription(symbol);
+
     // Build profile object
     const profile = {
       symbol: symbol,
@@ -812,6 +846,22 @@ async function getStockProfile(symbol) {
       industry: info.industry || metadata.industry || "N/A",
       sector: metadata.sector || "N/A",
       isin: metadata.isin || "N/A",
+      description: companyDescription || "N/A",
+
+      // Additional company information for enhanced description
+      businessDescription:
+        info.businessDescription ||
+        metadata.businessDescription ||
+        info.description ||
+        metadata.description ||
+        "",
+      companyProfile: info.companyProfile || metadata.companyProfile || "",
+      businessModel: info.businessModel || metadata.businessModel || "",
+      keyProducts: info.keyProducts || metadata.keyProducts || "",
+      marketPosition: info.marketPosition || metadata.marketPosition || "",
+      foundedYear: info.foundedYear || metadata.foundedYear || "",
+      headquarters: info.headquarters || metadata.headquarters || "",
+      website: info.website || metadata.website || "",
 
       // Price Information
       currentPrice: currentPrice,

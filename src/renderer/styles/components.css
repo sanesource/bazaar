@@ -529,7 +529,7 @@
 .back-btn {
   background-color: var(--xp-button);
   border: 2px outset var(--xp-button);
-  color: var(--xp-text);
+  color: var(--xp-fg);
   font-size: 11px;
   font-weight: bold;
   padding: 6px 12px;
@@ -550,6 +550,7 @@
   font-size: 14px;
   font-weight: bold;
   margin: 0;
+  color: var(--xp-header-text);
 }
 
 .profile-content {
@@ -588,12 +589,20 @@
 .stock-profile-company {
   font-size: 13px;
   margin-bottom: 5px;
-  color: var(--xp-text);
+  color: var(--xp-fg);
 }
 
 .stock-profile-industry {
   font-size: 10px;
   color: var(--xp-gray);
+}
+
+.stock-profile-description {
+  font-size: 11px;
+  color: var(--xp-fg);
+  line-height: 1.4;
+  margin-top: 8px;
+  text-align: justify;
 }
 
 .stock-profile-price-section {
@@ -604,6 +613,7 @@
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 5px;
+  color: var(--xp-fg);
 }
 
 .stock-profile-change {
@@ -635,7 +645,7 @@
 .stock-profile-info-value {
   font-size: 12px;
   font-weight: bold;
-  color: var(--xp-text);
+  color: var(--xp-fg);
 }
 
 /* Responsive adjustments */
