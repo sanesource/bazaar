@@ -75,6 +75,10 @@
                     <option value="1Year">1 Year</option>
                   </select>
                 </label>
+
+                <div id="filters-loading-icon" class="filters-loading-icon hidden">
+                  <div class="loading-spinner"></div>
+                </div>
               </div>
 
               <!-- Gainers & Losers Grid -->
@@ -123,6 +127,24 @@
               <h2 class="section-title">🏭 Sectoral Performance</h2>
             </div>
             <div class="section-content">
+              <!-- Sectoral Controls -->
+              <div class="sectoral-controls">
+                <label class="selector-label">
+                  <span class="label-text">Time Period:</span>
+                  <select id="sectoral-time-selector" class="selector-dropdown">
+                    <option value="1D">1 Day</option>
+                    <option value="1Week">1 Week</option>
+                    <option value="1Month">1 Month</option>
+                    <option value="6Months">6 Months</option>
+                    <option value="1Year">1 Year</option>
+                  </select>
+                </label>
+
+                <div id="sectoral-loading-icon" class="filters-loading-icon hidden">
+                  <div class="loading-spinner"></div>
+                </div>
+              </div>
+
               <div id="sectoral-container" class="sectoral-list"></div>
             </div>
           </section>

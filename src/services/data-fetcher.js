@@ -554,44 +554,134 @@ async function getVixData() {
 }
 
 /**
- * Get sectoral performance data
+ * Get sectoral performance data with time period support
  */
-async function getSectoralPerformance() {
+async function getSectoralPerformance(timePeriod = "1D") {
   try {
-    // Fetch all indices data once
-    const data = await nseIndia.getAllIndices();
+    if (timePeriod === "1D") {
+      // FAST PATH: Use LIVE market data from NSE indices endpoint
+      console.log(`Fetching sectoral data for ${timePeriod} - LIVE DATA`);
 
-    if (!data || !data.data) {
-      return [];
-    }
+      // Fetch all indices data once
+      const data = await nseIndia.getAllIndices();
 
-    const sectoralData = [];
-
-    for (const [sectorName, indexSymbol] of Object.entries(SECTORS)) {
-      try {
-        // Find the sector index in the data
-        const quote = data.data.find(
-          (item) => item.indexSymbol === indexSymbol
-        );
-
-        if (quote) {
-          const currentPrice = parseFloat(quote.last) || 0;
-          const prevClose = parseFloat(quote.previousClose) || currentPrice;
-          const changePct = ((currentPrice - prevClose) / prevClose) * 100;
-
-          sectoralData.push({
-            sector: sectorName,
-            price: currentPrice,
-            change_pct: changePct,
-          });
-        }
-      } catch (error) {
-        console.error(`Error processing ${sectorName}:`, error.message);
+      if (!data || !data.data) {
+        return [];
       }
-    }
 
-    sectoralData.sort((a, b) => b.change_pct - a.change_pct);
-    return sectoralData;
+      const sectoralData = [];
+
+      for (const [sectorName, indexSymbol] of Object.entries(SECTORS)) {
+        try {
+          // Find the sector index in the data
+          const quote = data.data.find(
+            (item) => item.indexSymbol === indexSymbol
+          );
+
+          if (quote) {
+            const currentPrice = parseFloat(quote.last) || 0;
+            const prevClose = parseFloat(quote.previousClose) || currentPrice;
+            const changePct = ((currentPrice - prevClose) / prevClose) * 100;
+
+            sectoralData.push({
+              sector: sectorName,
+              price: currentPrice,
+              change_pct: changePct,
+            });
+          }
+        } catch (error) {
+          console.error(`Error processing ${sectorName}:`, error.message);
+        }
+      }
+
+      sectoralData.sort((a, b) => b.change_pct - a.change_pct);
+      return sectoralData;
+    } else {
+      // HISTORICAL DATA: Use Yahoo Finance for different time periods
+      console.log(`Fetching sectoral data for ${timePeriod} - HISTORICAL DATA`);
+
+      const sectoralData = [];
+
+      // Calculate date range based on time period
+      const now = new Date();
+      let startDate, endDate;
+
+      switch (timePeriod) {
+        case "1Week":
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = now;
+          break;
+        case "1Month":
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          endDate = now;
+          break;
+        case "6Months":
+          startDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+          endDate = now;
+          break;
+        case "1Year":
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          endDate = now;
+          break;
+        default:
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = now;
+      }
+
+      // Map NSE sector symbols to Yahoo Finance symbols
+      const sectorSymbols = {
+        IT: "^CNXIT",
+        Bank: "^NSEBANK",
+        Auto: "^CNXAUTO",
+        Pharma: "^CNXPHARMA",
+        Metal: "^CNXMETAL",
+        FMCG: "^CNXFMCG",
+        Realty: "^CNXREALTY",
+        Energy: "^CNXENERGY",
+        Infra: "^CNXINFRA",
+        Media: "^CNXMEDIA",
+      };
+
+      console.log(`[DataFetcher] Using sector symbols:`, sectorSymbols);
+
+      for (const [sectorName, yahooSymbol] of Object.entries(sectorSymbols)) {
+        try {
+          const historical = await yahooFinance.chart(yahooSymbol, {
+            period1: startDate,
+            period2: endDate,
+            interval: "1d",
+          });
+
+          if (
+            historical &&
+            historical.quotes &&
+            historical.quotes.length >= 2
+          ) {
+            const quotes = historical.quotes;
+            const oldPrice = quotes[0].close;
+            const newPrice = quotes[quotes.length - 1].close;
+
+            if (oldPrice && newPrice) {
+              const changePct = ((newPrice - oldPrice) / oldPrice) * 100;
+
+              sectoralData.push({
+                sector: sectorName,
+                price: newPrice,
+                change_pct: changePct,
+              });
+            }
+          }
+        } catch (error) {
+          console.error(
+            `Error fetching ${sectorName} historical data:`,
+            error.message
+          );
+        }
+      }
+
+      sectoralData.sort((a, b) => b.change_pct - a.change_pct);
+      return sectoralData;
+    }
   } catch (error) {
     console.error("Error fetching sectoral data:", error);
     return [];

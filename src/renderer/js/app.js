@@ -22,6 +22,12 @@ class BazaarApp {
 
     this.indexSelector = document.getElementById("index-selector");
     this.timeSelector = document.getElementById("time-selector");
+    this.filtersLoadingIcon = document.getElementById("filters-loading-icon");
+
+    this.sectoralTimeSelector = document.getElementById(
+      "sectoral-time-selector"
+    );
+    this.sectoralLoadingIcon = document.getElementById("sectoral-loading-icon");
 
     this.tickersContainer = document.getElementById("tickers-container");
     this.gainersList = document.getElementById("gainers-list");
@@ -46,6 +52,9 @@ class BazaarApp {
       this.refreshGainersLosers();
       this.manageGainersLosersAutoRefresh();
     });
+    this.sectoralTimeSelector.addEventListener("change", () => {
+      this.refreshSectoral();
+    });
   }
 
   async startApp() {
@@ -66,6 +75,22 @@ class BazaarApp {
 
   hideLoading() {
     this.loadingOverlay.classList.add("hidden");
+  }
+
+  showFiltersLoading() {
+    this.filtersLoadingIcon.classList.remove("hidden");
+  }
+
+  hideFiltersLoading() {
+    this.filtersLoadingIcon.classList.add("hidden");
+  }
+
+  showSectoralLoading() {
+    this.sectoralLoadingIcon.classList.remove("hidden");
+  }
+
+  hideSectoralLoading() {
+    this.sectoralLoadingIcon.classList.add("hidden");
   }
 
   async loadInitialData() {
@@ -172,6 +197,9 @@ class BazaarApp {
           '<div class="loading-text">⏳ Loading...</div>';
         this.losersList.innerHTML =
           '<div class="loading-text">⏳ Loading...</div>';
+      } else {
+        // Filter change - show filters loading icon
+        this.showFiltersLoading();
       }
 
       const data = await window.api.getGainersLosers({ index, timePeriod });
@@ -213,6 +241,7 @@ class BazaarApp {
         '<div class="error-message">Failed to load</div>';
     } finally {
       this.isRefreshingGainersLosers = false;
+      this.hideFiltersLoading();
     }
   }
 
@@ -309,7 +338,24 @@ class BazaarApp {
 
   async refreshSectoral() {
     try {
-      const data = await window.api.getSectoralData();
+      // Ensure the selector exists and has a value
+      if (!this.sectoralTimeSelector) {
+        console.error("[Sectoral] sectoralTimeSelector not found!");
+        return;
+      }
+
+      const timePeriod = this.sectoralTimeSelector.value || "1D";
+
+      // Check if this is first load
+      const isFirstLoad = this.sectoralContainer.children.length === 0;
+
+      if (!isFirstLoad) {
+        // Filter change - show loading icon
+        this.showSectoralLoading();
+      }
+
+      const data = await window.api.getSectoralData({ timePeriod });
+
       this.sectoralContainer.innerHTML = "";
 
       if (data && data.length > 0) {
@@ -325,6 +371,8 @@ class BazaarApp {
       console.error("Error refreshing sectoral data:", error);
       this.sectoralContainer.innerHTML =
         '<div class="error-message">Failed to load sectoral data</div>';
+    } finally {
+      this.hideSectoralLoading();
     }
   }
 

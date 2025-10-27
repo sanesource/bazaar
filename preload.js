@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld("api", {
   getMarketData: () => ipcRenderer.invoke("get-market-data"),
   getGainersLosers: (params) =>
     ipcRenderer.invoke("get-gainers-losers", params),
-  getSectoralData: () => ipcRenderer.invoke("get-sectoral-data"),
+  getSectoralData: (params) => ipcRenderer.invoke("get-sectoral-data", params),
   getVixData: () => ipcRenderer.invoke("get-vix-data"),
   platform: process.platform,
 });

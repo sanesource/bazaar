@@ -74,9 +74,9 @@ ipcMain.handle("get-gainers-losers", async (event, params) => {
   return await getGainersLosers(params);
 });
 
-ipcMain.handle("get-sectoral-data", async () => {
+ipcMain.handle("get-sectoral-data", async (event, params) => {
   const { getSectoralPerformance } = require("./src/services/data-fetcher");
-  return await getSectoralPerformance();
+  return await getSectoralPerformance(params?.timePeriod || "1D");
 });
 
 ipcMain.handle("get-vix-data", async () => {
