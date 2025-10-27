@@ -49,6 +49,190 @@ const NumberFormatter = {
 
 const UIComponents = {
   /**
+   * Create a search result item
+   */
+  createSearchResultItem(stock) {
+    const item = document.createElement("div");
+    item.className = "search-result-item";
+    item.dataset.symbol = stock.symbol;
+
+    const symbolDiv = document.createElement("div");
+    symbolDiv.className = "search-result-symbol";
+    symbolDiv.textContent = stock.symbol;
+
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "search-result-name";
+    nameDiv.textContent = stock.companyName;
+
+    const priceDiv = document.createElement("div");
+    priceDiv.className = "search-result-price";
+    priceDiv.textContent = `₹${NumberFormatter.formatIndian(stock.lastPrice)}`;
+
+    const changeDiv = document.createElement("div");
+    const isPositive = stock.pChange >= 0;
+    changeDiv.className = `search-result-change ${
+      isPositive ? "positive" : "negative"
+    }`;
+    const arrow = isPositive ? "▲" : "▼";
+    changeDiv.textContent = `${arrow} ${Math.abs(stock.pChange).toFixed(2)}%`;
+
+    item.appendChild(symbolDiv);
+    item.appendChild(nameDiv);
+    item.appendChild(priceDiv);
+    item.appendChild(changeDiv);
+
+    return item;
+  },
+
+  /**
+   * Create a trending stock mini tag
+   */
+  createTrendingStockItem(stock) {
+    const item = document.createElement("div");
+    item.className = "trending-stock-tag";
+    item.dataset.symbol = stock.symbol;
+
+    const symbolDiv = document.createElement("span");
+    symbolDiv.className = "trending-tag-symbol";
+    symbolDiv.textContent = stock.symbol;
+
+    const priceDiv = document.createElement("span");
+    priceDiv.className = "trending-tag-price";
+    priceDiv.textContent = `₹${NumberFormatter.formatIndian(stock.lastPrice)}`;
+
+    const changeDiv = document.createElement("span");
+    const isPositive = stock.pChange >= 0;
+    changeDiv.className = `trending-tag-change ${
+      isPositive ? "positive" : "negative"
+    }`;
+    const arrow = isPositive ? "▲" : "▼";
+    changeDiv.textContent = `${arrow}${Math.abs(stock.pChange).toFixed(1)}%`;
+
+    item.appendChild(symbolDiv);
+    item.appendChild(priceDiv);
+    item.appendChild(changeDiv);
+
+    return item;
+  },
+
+  /**
+   * Create stock profile modal content
+   */
+  createStockProfile(profile) {
+    const container = document.createElement("div");
+    container.className = "stock-profile-container";
+
+    // Header Section
+    const header = document.createElement("div");
+    header.className = "stock-profile-header";
+
+    const titleSection = document.createElement("div");
+    titleSection.className = "stock-profile-title-section";
+
+    const symbol = document.createElement("h2");
+    symbol.className = "stock-profile-symbol";
+    symbol.textContent = profile.symbol;
+
+    const companyName = document.createElement("div");
+    companyName.className = "stock-profile-company";
+    companyName.textContent = profile.companyName;
+
+    const industryInfo = document.createElement("div");
+    industryInfo.className = "stock-profile-industry";
+    industryInfo.textContent = `${profile.industry} • ${profile.sector}`;
+
+    titleSection.appendChild(symbol);
+    titleSection.appendChild(companyName);
+    titleSection.appendChild(industryInfo);
+
+    const priceSection = document.createElement("div");
+    priceSection.className = "stock-profile-price-section";
+
+    const currentPrice = document.createElement("div");
+    currentPrice.className = "stock-profile-current-price";
+    currentPrice.textContent = `₹${NumberFormatter.formatIndian(
+      profile.currentPrice
+    )}`;
+
+    const change = document.createElement("div");
+    const isPositive = profile.changePct >= 0;
+    change.className = `stock-profile-change ${
+      isPositive ? "positive" : "negative"
+    }`;
+    const arrow = isPositive ? "▲" : "▼";
+    change.textContent = `${arrow} ₹${NumberFormatter.formatIndian(
+      Math.abs(profile.change)
+    )} (${Math.abs(profile.changePct).toFixed(2)}%)`;
+
+    priceSection.appendChild(currentPrice);
+    priceSection.appendChild(change);
+
+    header.appendChild(titleSection);
+    header.appendChild(priceSection);
+
+    // Info Grid Section
+    const infoGrid = document.createElement("div");
+    infoGrid.className = "stock-profile-info-grid";
+
+    const infoItems = [
+      {
+        label: "Previous Close",
+        value: `₹${NumberFormatter.formatIndian(profile.previousClose)}`,
+      },
+      {
+        label: "Open",
+        value: `₹${NumberFormatter.formatIndian(profile.open)}`,
+      },
+      {
+        label: "Day High",
+        value: `₹${NumberFormatter.formatIndian(profile.high)}`,
+      },
+      {
+        label: "Day Low",
+        value: `₹${NumberFormatter.formatIndian(profile.low)}`,
+      },
+      {
+        label: "52W High",
+        value: `₹${NumberFormatter.formatIndian(profile.week52High)}`,
+      },
+      {
+        label: "52W Low",
+        value: `₹${NumberFormatter.formatIndian(profile.week52Low)}`,
+      },
+      { label: "Volume", value: NumberFormatter.formatCompact(profile.volume) },
+      {
+        label: "Total Traded Value",
+        value: `₹${NumberFormatter.formatCompact(profile.totalTradedValue)}`,
+      },
+      { label: "ISIN", value: profile.isin },
+      { label: "Last Updated", value: profile.lastUpdateTime },
+    ];
+
+    infoItems.forEach((item) => {
+      const infoItem = document.createElement("div");
+      infoItem.className = "stock-profile-info-item";
+
+      const label = document.createElement("div");
+      label.className = "stock-profile-info-label";
+      label.textContent = item.label;
+
+      const value = document.createElement("div");
+      value.className = "stock-profile-info-value";
+      value.textContent = item.value;
+
+      infoItem.appendChild(label);
+      infoItem.appendChild(value);
+
+      infoGrid.appendChild(infoItem);
+    });
+
+    container.appendChild(header);
+    container.appendChild(infoGrid);
+
+    return container;
+  },
+
+  /**
    * Create a ticker card element
    */
   createTickerCard(data) {

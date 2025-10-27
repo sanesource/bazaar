@@ -42,6 +42,34 @@
       <!-- Scrollable Content Area -->
       <div class="content-wrapper">
         <div class="scrollable-content">
+          <!-- Stock Search Section -->
+          <section id="stock-search-section" class="section">
+            <div class="section-header">
+              <h2 class="section-title">🔍 Stock Search</h2>
+            </div>
+            <div class="section-content">
+              <!-- Search Bar -->
+              <div class="search-bar-container">
+                <input
+                  type="text"
+                  id="stock-search-input"
+                  class="stock-search-input"
+                  placeholder="Search stocks by symbol or company name..."
+                  autocomplete="off"
+                />
+                <div id="search-results" class="search-results-dropdown hidden"></div>
+              </div>
+
+              <!-- Trending Stocks -->
+              <div class="trending-stocks-section">
+                <h3 class="trending-title">🔥 Trending Stocks</h3>
+                <div id="trending-stocks-list" class="trending-stocks-list">
+                  <div class="loading-text">⏳ Loading...</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- Index Tickers Section -->
           <section id="tickers-section" class="section">
             <div class="section-header">
@@ -160,6 +188,17 @@
       <footer class="footer">
         <span id="last-update-label">Last Updated: Never</span>
       </footer>
+    </div>
+
+    <!-- Stock Profile Screen -->
+    <div id="stock-profile-screen" class="stock-profile-screen hidden">
+      <div class="profile-header">
+        <button id="back-btn" class="back-btn">← Back</button>
+        <h2 class="profile-title">Stock Profile</h2>
+      </div>
+      <div id="stock-profile-content" class="profile-content">
+        <div class="loading-text">⏳ Loading profile...</div>
+      </div>
     </div>
 
     <!-- Scripts -->

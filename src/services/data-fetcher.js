@@ -688,6 +688,161 @@ async function getSectoralPerformance(timePeriod = "1D") {
   }
 }
 
+/**
+ * Search for stocks by symbol or name
+ */
+async function searchStocks(query) {
+  try {
+    if (!query || query.trim().length < 1) {
+      return [];
+    }
+
+    query = query.trim().toUpperCase();
+
+    // Get all stocks from pre-open market data
+    const preOpenData = await nseIndia.getPreOpenMarketData();
+
+    if (!preOpenData || !preOpenData.data || !Array.isArray(preOpenData.data)) {
+      return [];
+    }
+
+    // Search in symbols and company names
+    const results = preOpenData.data
+      .filter((item) => {
+        if (!item.metadata || !item.metadata.symbol) return false;
+
+        const symbol = item.metadata.symbol.toUpperCase();
+        const companyName = (
+          item.metadata.companyName ||
+          item.metadata.identifier ||
+          ""
+        ).toUpperCase();
+
+        return symbol.includes(query) || companyName.includes(query);
+      })
+      .slice(0, 10) // Limit to 10 results
+      .map((item) => ({
+        symbol: item.metadata.symbol,
+        companyName:
+          item.metadata.companyName ||
+          item.metadata.identifier ||
+          item.metadata.symbol,
+        lastPrice: parseFloat(item.metadata.lastPrice) || 0,
+        change: parseFloat(item.metadata.change) || 0,
+        pChange: parseFloat(item.metadata.pChange) || 0,
+      }));
+
+    return results;
+  } catch (error) {
+    console.error("Error searching stocks:", error);
+    return [];
+  }
+}
+
+/**
+ * Get trending stocks (most active by volume)
+ */
+async function getTrendingStocks(limit = 5) {
+  try {
+    const preOpenData = await nseIndia.getPreOpenMarketData();
+
+    if (!preOpenData || !preOpenData.data || !Array.isArray(preOpenData.data)) {
+      return [];
+    }
+
+    // Get most active stocks by total turnover
+    const trendingStocks = preOpenData.data
+      .filter(
+        (item) =>
+          item.metadata &&
+          item.metadata.symbol &&
+          item.metadata.totalTurnover &&
+          item.metadata.lastPrice
+      )
+      .sort(
+        (a, b) =>
+          parseFloat(b.metadata.totalTurnover) -
+          parseFloat(a.metadata.totalTurnover)
+      )
+      .slice(0, limit)
+      .map((item) => ({
+        symbol: item.metadata.symbol,
+        companyName:
+          item.metadata.companyName ||
+          item.metadata.identifier ||
+          item.metadata.symbol,
+        lastPrice: parseFloat(item.metadata.lastPrice) || 0,
+        change: parseFloat(item.metadata.change) || 0,
+        pChange: parseFloat(item.metadata.pChange) || 0,
+      }));
+
+    return trendingStocks;
+  } catch (error) {
+    console.error("Error fetching trending stocks:", error);
+    return [];
+  }
+}
+
+/**
+ * Get detailed stock profile
+ */
+async function getStockProfile(symbol) {
+  try {
+    // Get equity details from NSE
+    const quoteData = await nseIndia.getEquityDetails(symbol);
+
+    if (!quoteData) {
+      throw new Error(`Stock data not found for ${symbol}`);
+    }
+
+    const priceInfo = quoteData.priceInfo || {};
+    const info = quoteData.info || {};
+    const metadata = quoteData.metadata || {};
+    const securityInfo = quoteData.securityInfo || {};
+
+    const currentPrice = parseFloat(priceInfo.lastPrice) || 0;
+    const prevClose = parseFloat(priceInfo.previousClose) || currentPrice;
+    const change = currentPrice - prevClose;
+    const changePct = (change / prevClose) * 100;
+
+    // Build profile object
+    const profile = {
+      symbol: symbol,
+      companyName: info.companyName || metadata.companyName || symbol,
+      industry: info.industry || metadata.industry || "N/A",
+      sector: metadata.sector || "N/A",
+      isin: metadata.isin || "N/A",
+
+      // Price Information
+      currentPrice: currentPrice,
+      change: change,
+      changePct: changePct,
+      previousClose: prevClose,
+      open: parseFloat(priceInfo.open) || 0,
+      high: parseFloat(priceInfo.intraDayHighLow?.max) || 0,
+      low: parseFloat(priceInfo.intraDayHighLow?.min) || 0,
+      volume: parseFloat(priceInfo.totalTradedVolume) || 0,
+      totalTradedValue: parseFloat(priceInfo.totalTradedValue) || 0,
+
+      // 52 Week Data
+      week52High: parseFloat(priceInfo.weekHighLow?.max) || 0,
+      week52Low: parseFloat(priceInfo.weekHighLow?.min) || 0,
+
+      // Market Data
+      marketCap: parseFloat(securityInfo.faceValue) || 0,
+      bookValue: parseFloat(securityInfo.issuedSize) || 0,
+
+      // Other Info
+      lastUpdateTime: priceInfo.lastUpdateTime || "N/A",
+    };
+
+    return profile;
+  } catch (error) {
+    console.error(`Error fetching stock profile for ${symbol}:`, error);
+    throw error;
+  }
+}
+
 module.exports = {
   getIndexData,
   getMarketData,
@@ -695,4 +850,7 @@ module.exports = {
   getVixData,
   getSectoralPerformance,
   getStockList, // Export for testing
+  searchStocks,
+  getTrendingStocks,
+  getStockProfile,
 };
