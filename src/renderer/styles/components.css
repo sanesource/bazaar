@@ -625,27 +625,155 @@
 .stock-profile-info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: 8px;
+  align-items: start;
+  grid-auto-rows: auto;
+}
+
+/* Category Headers */
+.stock-profile-category-header {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--xp-header);
+  text-transform: uppercase;
+  padding: 8px 0 4px 0;
+  border-bottom: 1px solid var(--xp-border);
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.stock-profile-category-header:first-child {
+  margin-top: 0;
 }
 
 .stock-profile-info-item {
-  background-color: var(--xp-text-bg);
-  border: 2px inset var(--xp-button);
+  background: linear-gradient(135deg, var(--xp-text-bg) 0%, #f8f9fa 100%);
+  border: 1px solid var(--xp-border);
+  border-radius: 4px;
   padding: 10px;
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stock-profile-info-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--xp-header);
+}
+
+.stock-profile-info-item.no-data {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
+  opacity: 0.7;
+}
+
+.stock-profile-info-item.no-data:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Data availability indicator */
+.data-indicator {
+  grid-row: 1 / -1;
+  grid-column: 1;
+  font-size: 8px;
+  color: var(--xp-header);
+  align-self: center;
+  text-align: center;
+}
+
+.stock-profile-info-item.no-data .data-indicator {
+  color: var(--xp-gray);
 }
 
 .stock-profile-info-label {
+  grid-column: 2;
+  grid-row: 1;
   font-size: 9px;
   font-weight: bold;
   color: var(--xp-gray);
-  margin-bottom: 5px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stock-profile-info-value {
-  font-size: 12px;
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 13px;
   font-weight: bold;
   color: var(--xp-fg);
+  font-family: "Courier New", monospace;
+}
+
+.stock-profile-info-item.no-data .stock-profile-info-value {
+  color: var(--xp-gray);
+  font-style: italic;
+}
+
+/* Category-specific styling */
+.stock-profile-info-item.trading {
+  border-left: 3px solid #007acc;
+}
+
+.stock-profile-info-item.valuation {
+  border-left: 3px solid #28a745;
+}
+
+.stock-profile-info-item.financial {
+  border-left: 3px solid #ffc107;
+}
+
+.stock-profile-info-item.risk {
+  border-left: 3px solid #dc3545;
+}
+
+.stock-profile-info-item.info {
+  border-left: 3px solid #6c757d;
+}
+
+/* Loading and Error States */
+.stock-profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--xp-gray);
+}
+
+.stock-profile-loading .loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--xp-border);
+  border-top: 3px solid var(--xp-header);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.stock-profile-error {
+  background-color: #ffe6e6;
+  border: 2px solid #ff4444;
+  border-radius: 4px;
+  padding: 16px;
+  margin: 16px 0;
+  color: #cc0000;
+  text-align: center;
 }
 
 /* Responsive adjustments */
@@ -661,9 +789,46 @@
 
   .stock-profile-info-grid {
     grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .stock-profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .stock-profile-price-section {
+    text-align: left;
   }
 
   .search-result-item {
     grid-template-columns: 80px 1fr 100px 80px;
+  }
+
+  .stock-profile-info-item {
+    padding: 8px;
+  }
+
+  .stock-profile-info-value {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-content {
+    padding: 12px;
+  }
+
+  .stock-profile-container {
+    gap: 16px;
+  }
+
+  .stock-profile-current-price {
+    font-size: 20px;
+  }
+
+  .stock-profile-change {
+    font-size: 12px;
   }
 }

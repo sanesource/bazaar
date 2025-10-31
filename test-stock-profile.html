@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Profile Test</title>
+    <link rel="stylesheet" href="src/renderer/styles/main.css" />
+    <link rel="stylesheet" href="src/renderer/styles/components.css" />
+  </head>
+  <body>
+    <div class="stock-profile-screen">
+      <div class="profile-header">
+        <button class="back-btn">← Back</button>
+        <h1 class="profile-title">RELIANCE Stock Profile</h1>
+      </div>
+      <div class="profile-content">
+        <div id="test-profile-content"></div>
+      </div>
+    </div>
+
+    <script src="src/renderer/js/ui-components.js"></script>
+    <script>
+      // Test data with mixed availability
+      const testProfile = {
+        symbol: "RELIANCE",
+        companyName: "Reliance Industries Limited",
+        industry: "Oil & Gas",
+        sector: "Energy",
+        description:
+          "Reliance Industries Limited is an Indian multinational conglomerate company, headquartered in Mumbai. It has diverse businesses across energy, petrochemicals, oil & gas, telecom and retail.",
+
+        // Price data (available)
+        currentPrice: 2456.75,
+        change: 23.5,
+        changePct: 0.97,
+        previousClose: 2433.25,
+        open: 2440.0,
+        high: 2467.8,
+        low: 2435.2,
+        volume: 1234567,
+        totalTradedValue: 3025000000,
+
+        // 52 week data (available)
+        week52High: 2856.15,
+        week52Low: 2220.3,
+
+        // Market data (mixed availability)
+        marketCap: 16500000000000, // Available
+        faceValue: 10, // Available
+        bookValue: null, // Not available
+
+        // Financial ratios (mixed)
+        peRatio: 24.5, // Available
+        pbRatio: 2.8, // Available
+        eps: 100.25, // Available
+        dividendYield: 0.0035, // Available (0.35%)
+        beta: 1.2, // Available
+        debtToEquity: 0.45, // Available
+
+        // Additional metrics (mostly unavailable)
+        roe: 12.5, // Available
+        roa: null, // Not available
+        revenue: null, // Not available
+        netProfit: null, // Not available
+
+        // Other info
+        isin: "INE002A01018",
+        lastUpdateTime: "2024-10-31 15:30:00",
+      };
+
+      // Create and display the profile
+      const profileElement = UIComponents.createStockProfile(testProfile);
+      document
+        .getElementById("test-profile-content")
+        .appendChild(profileElement);
+    </script>
+  </body>
+</html>

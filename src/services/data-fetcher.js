@@ -839,6 +839,182 @@ async function getStockProfile(symbol) {
     // Get real company description from Yahoo Finance
     const companyDescription = await getCompanyDescription(symbol);
 
+    // Try to get additional financial data from NSE corporate info
+    let corporateInfo = {};
+    let nseEps = null;
+    let calculatedRoe = null;
+    let calculatedRoa = null;
+    let calculatedDebtToEquity = null;
+
+    try {
+      corporateInfo = (await nseIndia.getEquityCorporateInfo(symbol)) || {};
+
+      // Extract EPS from financial results if available
+      if (corporateInfo.financial_results?.data?.length > 0) {
+        const latestResult = corporateInfo.financial_results.data[0];
+        nseEps = parseFloat(latestResult.reDilEPS) || null;
+        if (nseEps)
+          console.log(`✓ NSE EPS extracted for ${symbol}: ₹${nseEps}`);
+
+        // Try to calculate financial ratios from available data
+        const income = parseFloat(latestResult.income) || null;
+        const profit = parseFloat(latestResult.proLossAftTax) || null;
+
+        if (profit && income) {
+          // Calculate ROA (Return on Assets) = Net Income / Total Assets
+          // We'll use a proxy calculation since we don't have exact balance sheet data
+          // ROA ≈ Net Profit Margin (as a rough approximation)
+          calculatedRoa = (profit / income) * 100;
+          console.log(
+            `✓ Calculated ROA for ${symbol}: ${calculatedRoa.toFixed(2)}%`
+          );
+        }
+      }
+    } catch (e) {
+      console.log(`Corporate info not available for ${symbol}`);
+    }
+
+    // Try to get financial ratios from Yahoo Finance as backup
+    let yahooFinancials = {};
+    try {
+      const yahooSymbol = `${symbol}.NS`;
+
+      // Try both quoteSummary and quote methods for maximum data coverage
+      let yahooData = null;
+      let yahooQuote = null;
+
+      try {
+        yahooData = await yahooFinance.quoteSummary(yahooSymbol, {
+          modules: [
+            "defaultKeyStatistics",
+            "financialData",
+            "summaryDetail",
+            "balanceSheetHistory",
+          ],
+        });
+      } catch (e) {
+        console.log(`Yahoo quoteSummary failed for ${symbol}:`, e.message);
+      }
+
+      try {
+        yahooQuote = await yahooFinance.quote(yahooSymbol);
+      } catch (e) {
+        console.log(`Yahoo quote failed for ${symbol}:`, e.message);
+      }
+
+      if (yahooData || yahooQuote) {
+        const keyStats = yahooData?.defaultKeyStatistics || {};
+        const financialData = yahooData?.financialData || {};
+        const summaryDetail = yahooData?.summaryDetail || {};
+        const quote = yahooQuote || {};
+
+        yahooFinancials = {
+          // PE Ratio - try multiple sources
+          peRatio:
+            quote.trailingPE ||
+            keyStats.trailingPE?.raw ||
+            quote.forwardPE ||
+            keyStats.forwardPE?.raw ||
+            null,
+
+          // PB Ratio - with validation and alternative calculation
+          pbRatio: (() => {
+            const quotePB = quote.priceToBook;
+            const keyStatsPB = keyStats.priceToBook?.raw;
+
+            // Validate P/B ratios - should typically be between 0.1 and 50 for most stocks
+            const isValidPB = (pb) => pb && pb > 0.1 && pb < 50;
+
+            if (isValidPB(quotePB)) return quotePB;
+            if (isValidPB(keyStatsPB)) return keyStatsPB;
+
+            // For stocks with invalid P/B, try to estimate using ROE and P/E
+            // P/B ≈ P/E × ROE (rough approximation)
+            const pe = quote.trailingPE || keyStats.trailingPE?.raw;
+            const roe =
+              financialData.returnOnEquity?.raw || financialData.returnOnEquity;
+
+            if (pe && roe && pe > 0 && roe > 0) {
+              const estimatedPB = pe * roe;
+              if (isValidPB(estimatedPB)) {
+                console.log(
+                  `📊 Estimated P/B for ${symbol} using P/E×ROE: ${estimatedPB.toFixed(
+                    2
+                  )}`
+                );
+                return estimatedPB;
+              }
+            }
+
+            // If all methods fail, return null
+            return null;
+          })(),
+
+          // EPS - try multiple sources
+          eps:
+            quote.epsTrailingTwelveMonths ||
+            keyStats.trailingEps?.raw ||
+            financialData.trailingEps?.raw ||
+            quote.epsForward ||
+            null,
+
+          // Financial Health Ratios
+          roe:
+            financialData.returnOnEquity?.raw ||
+            financialData.returnOnEquity ||
+            null,
+          roa:
+            financialData.returnOnAssets?.raw ||
+            financialData.returnOnAssets ||
+            null,
+          debtToEquity:
+            financialData.debtToEquity?.raw ||
+            financialData.debtToEquity ||
+            null,
+
+          // Other metrics
+          beta: keyStats.beta || quote.beta || null,
+          dividendYield: quote.dividendYield
+            ? quote.dividendYield / 100
+            : summaryDetail.dividendYield?.raw || null,
+          marketCap: quote.marketCap || summaryDetail.marketCap?.raw || null,
+          bookValue: quote.bookValue || keyStats.bookValue?.raw || null,
+        };
+
+        // Convert ROE and ROA from decimal to percentage if needed
+        if (yahooFinancials.roe && yahooFinancials.roe < 1) {
+          yahooFinancials.roe = yahooFinancials.roe * 100;
+        }
+        if (yahooFinancials.roa && yahooFinancials.roa < 1) {
+          yahooFinancials.roa = yahooFinancials.roa * 100;
+        }
+
+        // Log data quality issues
+        if (quote.priceToBook && quote.priceToBook > 50) {
+          console.log(
+            `⚠️  Suspicious P/B ratio for ${symbol}: ${quote.priceToBook} (Book Value: ${quote.bookValue}) - Filtering out`
+          );
+        }
+
+        console.log(`Yahoo Finance data for ${symbol}:`, {
+          peRatio: yahooFinancials.peRatio,
+          pbRatio: yahooFinancials.pbRatio,
+          eps: yahooFinancials.eps,
+          roe: yahooFinancials.roe,
+          roa: yahooFinancials.roa,
+          debtToEquity: yahooFinancials.debtToEquity,
+          beta: yahooFinancials.beta,
+          pbFiltered: quote.priceToBook > 50 ? "YES" : "NO",
+        });
+      }
+    } catch (e) {
+      console.log(`Yahoo Finance data not available for ${symbol}:`, e.message);
+    }
+
+    // Calculate market cap if we have shares outstanding
+    const sharesOutstanding = parseFloat(securityInfo.issuedSize) || 0;
+    const marketCap = sharesOutstanding * currentPrice;
+
     // Build profile object
     const profile = {
       symbol: symbol,
@@ -878,12 +1054,72 @@ async function getStockProfile(symbol) {
       week52High: parseFloat(priceInfo.weekHighLow?.max) || 0,
       week52Low: parseFloat(priceInfo.weekHighLow?.min) || 0,
 
-      // Market Data
-      marketCap: parseFloat(securityInfo.faceValue) || 0,
-      bookValue: parseFloat(securityInfo.issuedSize) || 0,
+      // Market Data & Fundamentals
+      marketCap: marketCap > 0 ? marketCap : yahooFinancials.marketCap || null,
+      bookValue:
+        parseFloat(securityInfo.issuedSize) ||
+        yahooFinancials.bookValue ||
+        null,
+      faceValue: parseFloat(securityInfo.faceValue) || null,
+
+      // Financial ratios - try NSE first, then Yahoo Finance as backup
+      peRatio:
+        parseFloat(priceInfo.pe) ||
+        parseFloat(info.pe) ||
+        parseFloat(metadata.pe) ||
+        parseFloat(securityInfo.pe) ||
+        yahooFinancials.peRatio ||
+        null,
+      pbRatio:
+        parseFloat(priceInfo.pb) ||
+        parseFloat(info.pb) ||
+        parseFloat(metadata.pb) ||
+        parseFloat(securityInfo.pb) ||
+        yahooFinancials.pbRatio ||
+        null,
+      eps:
+        parseFloat(priceInfo.eps) ||
+        parseFloat(info.eps) ||
+        parseFloat(metadata.eps) ||
+        parseFloat(securityInfo.eps) ||
+        nseEps ||
+        yahooFinancials.eps ||
+        null,
+      dividendYield:
+        parseFloat(priceInfo.dividendYield) ||
+        parseFloat(info.dividendYield) ||
+        yahooFinancials.dividendYield ||
+        null,
+      beta:
+        parseFloat(priceInfo.beta) ||
+        parseFloat(info.beta) ||
+        parseFloat(metadata.beta) ||
+        yahooFinancials.beta ||
+        null,
+      debtToEquity:
+        yahooFinancials.debtToEquity ||
+        calculatedDebtToEquity ||
+        parseFloat(info.debtToEquity) ||
+        null,
+
+      // Financial Health Ratios - prioritize Yahoo Finance data, then calculated values
+      roe:
+        yahooFinancials.roe ||
+        calculatedRoe ||
+        parseFloat(corporateInfo.roe) ||
+        null,
+      roa:
+        yahooFinancials.roa ||
+        calculatedRoa ||
+        parseFloat(corporateInfo.roa) ||
+        null,
+
+      // Additional metrics from corporate info if available
+      revenue: parseFloat(corporateInfo.revenue) || null,
+      netProfit: parseFloat(corporateInfo.netProfit) || null,
 
       // Other Info
-      lastUpdateTime: priceInfo.lastUpdateTime || "N/A",
+      lastUpdateTime: priceInfo.lastUpdateTime || new Date().toLocaleString(),
     };
 
     return profile;

@@ -196,56 +196,207 @@ const UIComponents = {
     const infoGrid = document.createElement("div");
     infoGrid.className = "stock-profile-info-grid";
 
+    // Helper function to format values with better fallbacks
+    const formatValue = (value, type = "currency", suffix = "") => {
+      if (value === null || value === undefined || isNaN(value)) {
+        return "—";
+      }
+
+      // Handle zero values differently based on type
+      if (value === 0) {
+        switch (type) {
+          case "currency":
+          case "compact":
+            return "₹0";
+          case "percentage":
+            return "0.00%";
+          case "ratio":
+            return "0.00";
+          case "number":
+            return "0";
+          default:
+            return "0";
+        }
+      }
+
+      switch (type) {
+        case "currency":
+          return `₹${NumberFormatter.formatIndian(value)}`;
+        case "compact":
+          return `₹${NumberFormatter.formatCompact(value)}`;
+        case "percentage":
+          return `${Number(value).toFixed(2)}%`;
+        case "ratio":
+          return Number(value).toFixed(2);
+        case "number":
+          return NumberFormatter.formatCompact(value);
+        default:
+          return value.toString();
+      }
+    };
+
     const infoItems = [
+      // Price & Trading Data
       {
         label: "Previous Close",
-        value: `₹${NumberFormatter.formatIndian(profile.previousClose)}`,
+        value: formatValue(profile.previousClose, "currency"),
+        category: "trading",
       },
       {
         label: "Open",
-        value: `₹${NumberFormatter.formatIndian(profile.open)}`,
+        value: formatValue(profile.open, "currency"),
+        category: "trading",
       },
       {
-        label: "Day High",
-        value: `₹${NumberFormatter.formatIndian(profile.high)}`,
+        label: "Day Range",
+        value:
+          profile.low && profile.high
+            ? `₹${NumberFormatter.formatIndian(
+                profile.low
+              )} - ₹${NumberFormatter.formatIndian(profile.high)}`
+            : "—",
+        category: "trading",
       },
       {
-        label: "Day Low",
-        value: `₹${NumberFormatter.formatIndian(profile.low)}`,
+        label: "52W Range",
+        value:
+          profile.week52Low && profile.week52High
+            ? `₹${NumberFormatter.formatIndian(
+                profile.week52Low
+              )} - ₹${NumberFormatter.formatIndian(profile.week52High)}`
+            : "—",
+        category: "trading",
+      },
+
+      // Valuation Metrics
+      {
+        label: "Market Cap",
+        value: formatValue(profile.marketCap, "compact"),
+        category: "valuation",
       },
       {
-        label: "52W High",
-        value: `₹${NumberFormatter.formatIndian(profile.week52High)}`,
+        label: "P/E Ratio",
+        value: formatValue(profile.peRatio, "ratio"),
+        category: "valuation",
       },
       {
-        label: "52W Low",
-        value: `₹${NumberFormatter.formatIndian(profile.week52Low)}`,
+        label: "P/B Ratio",
+        value: formatValue(profile.pbRatio, "ratio"),
+        category: "valuation",
       },
-      { label: "Volume", value: NumberFormatter.formatCompact(profile.volume) },
       {
-        label: "Total Traded Value",
-        value: `₹${NumberFormatter.formatCompact(profile.totalTradedValue)}`,
+        label: "EPS (TTM)",
+        value: formatValue(profile.eps, "currency"),
+        category: "valuation",
       },
-      { label: "ISIN", value: profile.isin },
-      { label: "Last Updated", value: profile.lastUpdateTime },
+      {
+        label: "Book Value",
+        value: formatValue(profile.bookValue, "number"),
+        category: "valuation",
+      },
+      {
+        label: "Face Value",
+        value: formatValue(profile.faceValue, "currency"),
+        category: "valuation",
+      },
+
+      // Financial Health
+      {
+        label: "Debt/Equity",
+        value: formatValue(profile.debtToEquity, "ratio"),
+        category: "financial",
+      },
+      {
+        label: "ROE",
+        value: formatValue(profile.roe, "percentage"),
+        category: "financial",
+      },
+      {
+        label: "ROA",
+        value: formatValue(profile.roa, "percentage"),
+        category: "financial",
+      },
+      {
+        label: "Dividend Yield",
+        value: profile.dividendYield
+          ? formatValue(profile.dividendYield * 100, "percentage")
+          : "—",
+        category: "financial",
+      },
+
+      // Risk Metrics
+      {
+        label: "Beta",
+        value: formatValue(profile.beta, "ratio"),
+        category: "risk",
+      },
+
+      // Company Info
+      {
+        label: "ISIN",
+        value: profile.isin || "—",
+        category: "info",
+      },
+      {
+        label: "Last Updated",
+        value: profile.lastUpdateTime || "—",
+        category: "info",
+      },
     ];
 
-    infoItems.forEach((item) => {
-      const infoItem = document.createElement("div");
-      infoItem.className = "stock-profile-info-item";
+    // Group items by category for better organization
+    const categories = {
+      trading: "Trading Data",
+      valuation: "Valuation",
+      financial: "Financial Health",
+      risk: "Risk Metrics",
+      info: "Company Info",
+    };
 
-      const label = document.createElement("div");
-      label.className = "stock-profile-info-label";
-      label.textContent = item.label;
+    // Create sections for each category
+    Object.keys(categories).forEach((categoryKey) => {
+      const categoryItems = infoItems.filter(
+        (item) => item.category === categoryKey
+      );
 
-      const value = document.createElement("div");
-      value.className = "stock-profile-info-value";
-      value.textContent = item.value;
+      if (categoryItems.length > 0) {
+        // Create category header
+        const categoryHeader = document.createElement("div");
+        categoryHeader.className = "stock-profile-category-header";
+        categoryHeader.textContent = categories[categoryKey];
+        infoGrid.appendChild(categoryHeader);
 
-      infoItem.appendChild(label);
-      infoItem.appendChild(value);
+        // Add items for this category
+        categoryItems.forEach((item) => {
+          const infoItem = document.createElement("div");
+          infoItem.className = `stock-profile-info-item ${item.category}`;
 
-      infoGrid.appendChild(infoItem);
+          // Add data availability indicator
+          const isDataAvailable = item.value !== "—";
+          if (!isDataAvailable) {
+            infoItem.classList.add("no-data");
+          }
+
+          const label = document.createElement("div");
+          label.className = "stock-profile-info-label";
+          label.textContent = item.label;
+
+          const value = document.createElement("div");
+          value.className = "stock-profile-info-value";
+          value.textContent = item.value;
+
+          // Add icon for data availability
+          const indicator = document.createElement("div");
+          indicator.className = "data-indicator";
+          indicator.textContent = isDataAvailable ? "●" : "○";
+
+          infoItem.appendChild(indicator);
+          infoItem.appendChild(label);
+          infoItem.appendChild(value);
+
+          infoGrid.appendChild(infoItem);
+        });
+      }
     });
 
     container.appendChild(header);

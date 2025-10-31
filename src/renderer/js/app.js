@@ -554,9 +554,16 @@ class BazaarApp {
       // Update the title to show the stock ticker
       this.profileTitle.textContent = symbol;
 
-      // Show screen with loading state
-      this.stockProfileContent.innerHTML =
-        '<div class="loading-text">⏳ Loading profile...</div>';
+      // Show screen with enhanced loading state
+      this.stockProfileContent.innerHTML = `
+        <div class="stock-profile-loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Loading ${symbol} profile...</div>
+          <div style="font-size: 10px; color: var(--xp-gray); margin-top: 8px;">
+            Fetching market data and financial metrics
+          </div>
+        </div>
+      `;
       this.stockProfileScreen.classList.remove("hidden");
 
       // Fetch stock profile
@@ -568,8 +575,20 @@ class BazaarApp {
       this.stockProfileContent.appendChild(profileElement);
     } catch (error) {
       console.error("Error loading stock profile:", error);
-      this.stockProfileContent.innerHTML =
-        '<div class="error-message">Failed to load stock profile. Please try again.</div>';
+      this.stockProfileContent.innerHTML = `
+        <div class="stock-profile-error">
+          <strong>⚠️ Failed to load stock profile</strong><br>
+          <div style="margin-top: 8px; font-size: 11px;">
+            ${
+              error.message ||
+              "Please check your internet connection and try again."
+            }
+          </div>
+          <button onclick="window.location.reload()" style="margin-top: 12px; padding: 6px 12px; background: var(--xp-button); border: 1px solid var(--xp-border); cursor: pointer;">
+            Retry
+          </button>
+        </div>
+      `;
     }
   }
 
