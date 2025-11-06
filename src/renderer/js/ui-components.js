@@ -399,7 +399,275 @@ const UIComponents = {
       }
     });
 
+    // Chart Section
+    const chartSection = document.createElement("div");
+    chartSection.className = "stock-profile-chart-section";
+
+    const chartHeader = document.createElement("div");
+    chartHeader.className = "stock-profile-chart-header";
+
+    const chartTitle = document.createElement("h3");
+    chartTitle.className = "stock-profile-chart-title";
+    chartTitle.textContent = "Price Chart";
+
+    // Percent change display
+    const percentChangeDisplay = document.createElement("div");
+    percentChangeDisplay.className = "stock-profile-chart-change";
+    percentChangeDisplay.textContent = "--";
+
+    // Timeframe buttons
+    const timeframeButtons = document.createElement("div");
+    timeframeButtons.className = "stock-profile-timeframe-buttons";
+
+    const timeframes = [
+      { value: "1D", label: "1D" },
+      { value: "1Week", label: "1W" },
+      { value: "1Month", label: "1M" },
+      { value: "6Months", label: "6M" },
+      { value: "1Year", label: "1Y" },
+    ];
+
+    let currentTimeframe = "1D";
+    let chartInstance = null;
+
+    timeframes.forEach((tf) => {
+      const btn = document.createElement("button");
+      btn.className = `timeframe-btn ${
+        tf.value === currentTimeframe ? "active" : ""
+      }`;
+      btn.textContent = tf.label;
+      btn.dataset.timeframe = tf.value;
+      timeframeButtons.appendChild(btn);
+    });
+
+    chartHeader.appendChild(chartTitle);
+
+    const chartHeaderRight = document.createElement("div");
+    chartHeaderRight.className = "stock-profile-chart-header-right";
+    chartHeaderRight.appendChild(percentChangeDisplay);
+    chartHeaderRight.appendChild(timeframeButtons);
+
+    chartHeader.appendChild(chartHeaderRight);
+
+    // Chart container
+    const chartContainer = document.createElement("div");
+    chartContainer.className = "stock-profile-chart-container";
+
+    chartSection.appendChild(chartHeader);
+    chartSection.appendChild(chartContainer);
+
+    // Function to render chart
+    const renderChart = async (timeframe) => {
+      try {
+        // Show loading state
+        chartContainer.innerHTML =
+          '<div class="chart-loading">Loading chart data...</div>';
+        percentChangeDisplay.textContent = "Loading...";
+        percentChangeDisplay.className = "stock-profile-chart-change";
+
+        const chartData = await window.api.getStockChartData(
+          profile.symbol,
+          timeframe
+        );
+
+        if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+          chartContainer.innerHTML =
+            '<div class="chart-error">No chart data available</div>';
+          percentChangeDisplay.textContent = "--";
+          percentChangeDisplay.className = "stock-profile-chart-change";
+          return;
+        }
+
+        // Clear previous chart
+        if (chartInstance) {
+          chartInstance.destroy();
+        }
+
+        // Create canvas element
+        chartContainer.innerHTML = `<canvas id="stock-chart-${profile.symbol}"></canvas>`;
+        const canvas = chartContainer.querySelector(
+          `#stock-chart-${profile.symbol}`
+        );
+        const ctx = canvas.getContext("2d");
+
+        // For 1D timeframe, prepend previous close and append current price
+        if (
+          timeframe === "1D" &&
+          profile.previousClose &&
+          profile.currentPrice
+        ) {
+          // Prepend previous close as the first data point
+          if (
+            chartData.prices.length > 0 &&
+            chartData.prices[0] !== profile.previousClose
+          ) {
+            chartData.prices.unshift(profile.previousClose);
+            // Get the date of previous close (yesterday's close time, typically 15:30)
+            const prevCloseDate = new Date();
+            prevCloseDate.setDate(prevCloseDate.getDate() - 1);
+            prevCloseDate.setHours(15, 30, 0, 0);
+            chartData.labels.unshift(
+              prevCloseDate.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            );
+          }
+
+          // Ensure the last data point uses current price
+          if (chartData.prices.length > 0) {
+            chartData.prices[chartData.prices.length - 1] =
+              profile.currentPrice;
+            // Update the last label to show current time
+            const now = new Date();
+            chartData.labels[chartData.labels.length - 1] =
+              now.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              });
+          }
+        }
+
+        // Calculate percent change
+        const firstPrice = chartData.prices[0];
+        const lastPrice = chartData.prices[chartData.prices.length - 1];
+
+        const priceChange = lastPrice - firstPrice;
+        const priceChangePercent =
+          firstPrice > 0 ? (priceChange / firstPrice) * 100 : 0;
+        const isPositive = priceChangePercent >= 0;
+        const lineColor = isPositive ? "#28a745" : "#dc3545";
+        const fillColor = isPositive
+          ? "rgba(40, 167, 69, 0.1)"
+          : "rgba(220, 53, 69, 0.1)";
+
+        // Update percent change display
+        const arrow = isPositive ? "▲" : "▼";
+        percentChangeDisplay.textContent = `${arrow} ${Math.abs(
+          priceChangePercent
+        ).toFixed(2)}%`;
+        percentChangeDisplay.className = `stock-profile-chart-change ${
+          isPositive ? "positive" : "negative"
+        }`;
+
+        // Create chart
+        chartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: chartData.labels,
+            datasets: [
+              {
+                label: "Price",
+                data: chartData.prices,
+                borderColor: lineColor,
+                backgroundColor: fillColor,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: "#fff",
+                pointHoverBorderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                mode: "index",
+                intersect: false,
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                padding: 10,
+                titleFont: {
+                  size: 12,
+                  weight: "bold",
+                },
+                bodyFont: {
+                  size: 11,
+                },
+                callbacks: {
+                  label: function (context) {
+                    return `₹${NumberFormatter.formatIndian(context.parsed.y)}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                display: true,
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  maxTicksLimit: 8,
+                  font: {
+                    size: 10,
+                  },
+                  color: "var(--xp-gray)",
+                },
+              },
+              y: {
+                display: true,
+                position: "right",
+                grid: {
+                  color: "rgba(0, 0, 0, 0.05)",
+                },
+                ticks: {
+                  font: {
+                    size: 10,
+                  },
+                  color: "var(--xp-gray)",
+                  callback: function (value) {
+                    return "₹" + NumberFormatter.formatCompact(value);
+                  },
+                },
+              },
+            },
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+          },
+        });
+      } catch (error) {
+        console.error("Error rendering chart:", error);
+        chartContainer.innerHTML =
+          '<div class="chart-error">Failed to load chart</div>';
+        percentChangeDisplay.textContent = "--";
+        percentChangeDisplay.className = "stock-profile-chart-change";
+      }
+    };
+
+    // Add event listeners to timeframe buttons
+    timeframeButtons.querySelectorAll(".timeframe-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const timeframe = btn.dataset.timeframe;
+        currentTimeframe = timeframe;
+
+        // Update active state
+        timeframeButtons.querySelectorAll(".timeframe-btn").forEach((b) => {
+          b.classList.remove("active");
+        });
+        btn.classList.add("active");
+
+        // Render chart with new timeframe
+        renderChart(timeframe);
+      });
+    });
+
+    // Initial chart render
+    renderChart(currentTimeframe);
+
     container.appendChild(header);
+    container.appendChild(chartSection);
     container.appendChild(infoGrid);
 
     return container;

@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <title>Bazaar - Indian Stock Market</title>
     <link rel="stylesheet" href="styles/winxp.css" />
     <link rel="stylesheet" href="styles/themes.css" />
@@ -19,7 +20,9 @@
       <div class="loading-container">
         <div class="loading-icon">⏳</div>
         <div class="loading-text">Loading market data...</div>
-        <div class="loading-subtext">Please wait while we fetch the latest updates</div>
+        <div class="loading-subtext">
+          Please wait while we fetch the latest updates
+        </div>
       </div>
     </div>
 
@@ -28,14 +31,18 @@
       <!-- Header -->
       <header class="header">
         <div class="header-left">
-          <h1 class="header-title">🏛️ Bazaar - Indian Stock Market Dashboard</h1>
+          <h1 class="header-title">
+            🏛️ Bazaar - Indian Stock Market Dashboard
+          </h1>
         </div>
         <div class="header-right">
           <select id="theme-selector" class="theme-selector">
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
-          <span id="market-status" class="status-label">Market: Loading...</span>
+          <span id="market-status" class="status-label"
+            >Market: Loading...</span
+          >
         </div>
       </header>
 
@@ -57,7 +64,10 @@
                   placeholder="Search stocks by symbol or company name..."
                   autocomplete="off"
                 />
-                <div id="search-results" class="search-results-dropdown hidden"></div>
+                <div
+                  id="search-results"
+                  class="search-results-dropdown hidden"
+                ></div>
               </div>
 
               <!-- Trending Stocks -->
@@ -83,7 +93,14 @@
           <!-- Gainers & Losers Section -->
           <section id="gainers-losers-section" class="section">
             <div class="section-header">
-              <h2 class="section-title">🔥 Top Gainers & Losers <span id="gainers-refresh-indicator" style="font-size: 9px; color: #90EE90; display: none;">● LIVE</span></h2>
+              <h2 class="section-title">
+                🔥 Top Gainers & Losers
+                <span
+                  id="gainers-refresh-indicator"
+                  style="font-size: 9px; color: #90ee90; display: none"
+                  >● LIVE</span
+                >
+              </h2>
             </div>
             <div class="section-content">
               <!-- Selector Controls -->
@@ -109,7 +126,10 @@
                   </select>
                 </label>
 
-                <div id="filters-loading-icon" class="filters-loading-icon hidden">
+                <div
+                  id="filters-loading-icon"
+                  class="filters-loading-icon hidden"
+                >
                   <div class="loading-spinner"></div>
                 </div>
               </div>
@@ -148,7 +168,9 @@
                   <h3 class="card-title">Market Greed Meter</h3>
                   <div id="greed-score" class="card-value">--</div>
                   <div id="greed-status" class="card-status">--</div>
-                  <div class="meter-legend">0=Extreme Fear 25=Fear 50=Neutral 75=Greed 100=Extreme Greed</div>
+                  <div class="meter-legend">
+                    0=Extreme Fear 25=Fear 50=Neutral 75=Greed 100=Extreme Greed
+                  </div>
                 </div>
               </div>
             </div>
@@ -173,7 +195,10 @@
                   </select>
                 </label>
 
-                <div id="sectoral-loading-icon" class="filters-loading-icon hidden">
+                <div
+                  id="sectoral-loading-icon"
+                  class="filters-loading-icon hidden"
+                >
                   <div class="loading-spinner"></div>
                 </div>
               </div>
@@ -206,4 +231,3 @@
     <script src="js/app.js"></script>
   </body>
 </html>
-

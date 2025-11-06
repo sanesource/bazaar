@@ -12,5 +12,7 @@ contextBridge.exposeInMainWorld("api", {
   getTrendingStocks: (limit) =>
     ipcRenderer.invoke("get-trending-stocks", limit),
   getStockProfile: (symbol) => ipcRenderer.invoke("get-stock-profile", symbol),
+  getStockChartData: (symbol, timePeriod) =>
+    ipcRenderer.invoke("get-stock-chart-data", symbol, timePeriod),
   platform: process.platform,
 });

@@ -1129,6 +1129,103 @@ async function getStockProfile(symbol) {
   }
 }
 
+/**
+ * Get historical chart data for a stock
+ */
+async function getStockChartData(symbol, timePeriod = "1D") {
+  try {
+    const yahooSymbol = `${symbol}.NS`;
+    const endDate = new Date();
+    const startDate = new Date();
+
+    // Calculate start date based on time period
+    switch (timePeriod) {
+      case "1D":
+        // For 1 day, get intraday data (1 hour intervals)
+        startDate.setDate(startDate.getDate() - 1);
+        break;
+      case "1Week":
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case "1Month":
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case "6Months":
+        startDate.setMonth(startDate.getMonth() - 6);
+        break;
+      case "1Year":
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      default:
+        startDate.setDate(startDate.getDate() - 7);
+    }
+
+    // Determine interval based on time period
+    let interval = "1d"; // Default to daily
+    if (timePeriod === "1D") {
+      interval = "1h"; // Hourly for 1 day
+    } else if (timePeriod === "1Week") {
+      interval = "1d"; // Daily for 1 week
+    } else {
+      interval = "1d"; // Daily for longer periods
+    }
+
+    const historical = await yahooFinance.chart(yahooSymbol, {
+      period1: startDate,
+      period2: endDate,
+      interval: interval,
+    });
+
+    if (!historical || !historical.quotes || historical.quotes.length === 0) {
+      return { labels: [], prices: [], volumes: [] };
+    }
+
+    const quotes = historical.quotes;
+    const labels = [];
+    const prices = [];
+    const volumes = [];
+
+    quotes.forEach((quote) => {
+      if (quote.date && quote.close !== null && quote.close !== undefined) {
+        const date = new Date(quote.date * 1000);
+
+        // Format labels based on time period
+        let label;
+        if (timePeriod === "1D") {
+          label = date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+        } else if (timePeriod === "1Week") {
+          label = date.toLocaleDateString("en-US", {
+            weekday: "short",
+            day: "numeric",
+          });
+        } else {
+          label = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }
+
+        labels.push(label);
+        prices.push(parseFloat(quote.close) || 0);
+        volumes.push(parseFloat(quote.volume) || 0);
+      }
+    });
+
+    return {
+      labels,
+      prices,
+      volumes,
+    };
+  } catch (error) {
+    console.error(`Error fetching chart data for ${symbol}:`, error);
+    return { labels: [], prices: [], volumes: [] };
+  }
+}
+
 module.exports = {
   getIndexData,
   getMarketData,
@@ -1139,4 +1236,5 @@ module.exports = {
   searchStocks,
   getTrendingStocks,
   getStockProfile,
+  getStockChartData,
 };

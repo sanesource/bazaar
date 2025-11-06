@@ -98,3 +98,8 @@ ipcMain.handle("get-stock-profile", async (event, symbol) => {
   const { getStockProfile } = require("./src/services/data-fetcher");
   return await getStockProfile(symbol);
 });
+
+ipcMain.handle("get-stock-chart-data", async (event, symbol, timePeriod) => {
+  const { getStockChartData } = require("./src/services/data-fetcher");
+  return await getStockChartData(symbol, timePeriod);
+});
