@@ -272,6 +272,9 @@ class BazaarApp {
         if (data.gainers && data.gainers.length > 0) {
           data.gainers.forEach((stock) => {
             const item = UIComponents.createStockItem(stock);
+            item.addEventListener("click", () => {
+              this.openStockProfile(stock.symbol);
+            });
             this.gainersList.appendChild(item);
           });
         } else {
@@ -282,6 +285,9 @@ class BazaarApp {
         if (data.losers && data.losers.length > 0) {
           data.losers.forEach((stock) => {
             const item = UIComponents.createStockItem(stock);
+            item.addEventListener("click", () => {
+              this.openStockProfile(stock.symbol);
+            });
             this.losersList.appendChild(item);
           });
         } else {
@@ -326,11 +332,17 @@ class BazaarApp {
         } else {
           // Different stock, replace the item
           const newItem = UIComponents.createStockItem(stock);
+          newItem.addEventListener("click", () => {
+            this.openStockProfile(stock.symbol);
+          });
           listElement.replaceChild(newItem, existingItem);
         }
       } else {
         // Need to create a new item
         const newItem = UIComponents.createStockItem(stock);
+        newItem.addEventListener("click", () => {
+          this.openStockProfile(stock.symbol);
+        });
         listElement.appendChild(newItem);
       }
     });

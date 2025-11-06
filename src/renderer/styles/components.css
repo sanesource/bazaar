@@ -178,6 +178,12 @@
   align-items: center;
   border-bottom: 1px solid var(--xp-border);
   transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.stock-item:hover {
+  background-color: var(--xp-button-hover);
+  border-left: 3px solid var(--xp-header);
 }
 
 .stock-item:nth-child(even) {
