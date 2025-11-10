@@ -787,7 +787,7 @@ async function getTrendingStocks(limit = 5) {
     }
 
     // Get most active stocks by total turnover
-    const trendingStocks = preOpenData.data
+    const topStocks = preOpenData.data
       .filter(
         (item) =>
           item.metadata &&
@@ -800,17 +800,53 @@ async function getTrendingStocks(limit = 5) {
           parseFloat(b.metadata.totalTurnover) -
           parseFloat(a.metadata.totalTurnover)
       )
-      .slice(0, limit)
-      .map((item) => ({
-        symbol: item.metadata.symbol,
-        companyName:
-          item.metadata.companyName ||
-          item.metadata.identifier ||
-          item.metadata.symbol,
-        lastPrice: parseFloat(item.metadata.lastPrice) || 0,
-        change: parseFloat(item.metadata.change) || 0,
-        pChange: parseFloat(item.metadata.pChange) || 0,
-      }));
+      .slice(0, limit);
+
+    // Fetch fresh equity details for each stock to get accurate price change
+    const trendingStocks = await Promise.all(
+      topStocks.map(async (item) => {
+        const symbol = item.metadata.symbol;
+        let lastPrice = parseFloat(item.metadata.lastPrice) || 0;
+        let pChange = parseFloat(item.metadata.pChange) || 0;
+        let change = parseFloat(item.metadata.change) || 0;
+
+        try {
+          // Fetch fresh equity details to get accurate price change
+          const equityDetails = await nseIndia.getEquityDetails(symbol);
+          if (equityDetails && equityDetails.priceInfo) {
+            const priceInfo = equityDetails.priceInfo;
+            const currentPrice = parseFloat(priceInfo.lastPrice) || 0;
+            const prevClose =
+              parseFloat(priceInfo.previousClose) || currentPrice;
+
+            if (currentPrice > 0 && prevClose > 0) {
+              lastPrice = currentPrice;
+              change = currentPrice - prevClose;
+              // Calculate change percentage correctly
+              pChange = (change / prevClose) * 100;
+            }
+          }
+        } catch (error) {
+          // If fetching equity details fails, use pre-open data as fallback
+          console.warn(
+            `Failed to fetch fresh data for ${symbol}, using pre-open data:`,
+            error
+          );
+          change = parseFloat(item.metadata.change) || 0;
+        }
+
+        return {
+          symbol: symbol,
+          companyName:
+            item.metadata.companyName ||
+            item.metadata.identifier ||
+            item.metadata.symbol,
+          lastPrice: lastPrice,
+          change: change,
+          pChange: pChange,
+        };
+      })
+    );
 
     return trendingStocks;
   } catch (error) {
