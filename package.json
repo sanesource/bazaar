@@ -1,6 +1,6 @@
 {
   "name": "bazaar",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Indian Stock Market Dashboard with Light Theme",
   "main": "main.js",
   "scripts": {
