@@ -5,11 +5,6 @@ on:
     tags:
       - "v*.*.*" # Triggers on version tags like v1.0.0
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
-    inputs:
-      version:
-        description: "Version number (e.g., 1.0.0)"
-        required: true
-        default: "1.0.0"
 
 jobs:
   build:
@@ -25,18 +20,15 @@ jobs:
             artifact_pattern: |
               dist/*.AppImage
               dist/*.deb
-              dist/latest-linux.yml
           - os: macos-latest
             platform: mac
             artifact_pattern: |
               dist/*.dmg
               dist/*.zip
-              dist/latest-mac.yml
           - os: windows-latest
             platform: windows
             artifact_pattern: |
               dist/*.exe
-              dist/latest.yml
 
     steps:
       - name: Checkout code
@@ -54,7 +46,15 @@ jobs:
       - name: Build for ${{ matrix.platform }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build
+        shell: bash
+        run: |
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            npm run build:mac
+          elif [ "${{ matrix.platform }}" = "linux" ]; then
+            npm run build:linux
+          elif [ "${{ matrix.platform }}" = "windows" ]; then
+            npm run build:win
+          fi
 
       - name: List dist contents (debug)
         shell: bash
@@ -66,7 +66,7 @@ jobs:
           name: bazaar-${{ matrix.platform }}
           path: ${{ matrix.artifact_pattern }}
           retention-days: 5
-          if-no-files-found: error
+          if-no-files-found: warn
 
   release:
     name: Create Release
@@ -89,12 +89,19 @@ jobs:
           echo "=== All downloaded artifacts ==="
           ls -lR artifacts/
 
-      - name: Get version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Get version from package.json
         id: version
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ github.event.inputs.version }}"
+            # Read version from package.json for manual triggers
+            VERSION=$(node -p "require('./package.json').version")
           else
+            # Extract version from tag for tag-based triggers
             VERSION="${GITHUB_REF#refs/tags/v}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
