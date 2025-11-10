@@ -688,6 +688,616 @@ async function getSectoralPerformance(timePeriod = "1D") {
   }
 }
 
+/**
+ * Search for stocks by symbol or name
+ */
+async function searchStocks(query) {
+  try {
+    if (!query || query.trim().length < 1) {
+      return [];
+    }
+
+    query = query.trim().toUpperCase();
+
+    // Get all stocks from pre-open market data
+    const preOpenData = await nseIndia.getPreOpenMarketData();
+
+    if (!preOpenData || !preOpenData.data || !Array.isArray(preOpenData.data)) {
+      return [];
+    }
+
+    // Search in symbols and company names
+    const matchedStocks = preOpenData.data
+      .filter((item) => {
+        if (!item.metadata || !item.metadata.symbol) return false;
+
+        const symbol = item.metadata.symbol.toUpperCase();
+        const companyName = (
+          item.metadata.companyName ||
+          item.metadata.identifier ||
+          ""
+        ).toUpperCase();
+
+        return symbol.includes(query) || companyName.includes(query);
+      })
+      .slice(0, 10); // Limit to 10 results
+
+    // Fetch fresh equity details for each stock to get accurate price change
+    const results = await Promise.all(
+      matchedStocks.map(async (item) => {
+        const symbol = item.metadata.symbol;
+        let lastPrice = parseFloat(item.metadata.lastPrice) || 0;
+        let pChange = parseFloat(item.metadata.pChange) || 0;
+
+        let change = 0;
+        try {
+          // Fetch fresh equity details to get accurate price change
+          const equityDetails = await nseIndia.getEquityDetails(symbol);
+          if (equityDetails && equityDetails.priceInfo) {
+            const priceInfo = equityDetails.priceInfo;
+            const currentPrice = parseFloat(priceInfo.lastPrice) || 0;
+            const prevClose =
+              parseFloat(priceInfo.previousClose) || currentPrice;
+
+            if (currentPrice > 0 && prevClose > 0) {
+              lastPrice = currentPrice;
+              change = currentPrice - prevClose;
+              // Calculate change percentage correctly
+              pChange = (change / prevClose) * 100;
+            }
+          }
+        } catch (error) {
+          // If fetching equity details fails, use pre-open data as fallback
+          console.warn(
+            `Failed to fetch fresh data for ${symbol}, using pre-open data:`,
+            error
+          );
+          change = parseFloat(item.metadata.change) || 0;
+        }
+
+        return {
+          symbol: symbol,
+          companyName:
+            item.metadata.companyName ||
+            item.metadata.identifier ||
+            item.metadata.symbol,
+          lastPrice: lastPrice,
+          change: change,
+          pChange: pChange,
+        };
+      })
+    );
+
+    return results;
+  } catch (error) {
+    console.error("Error searching stocks:", error);
+    return [];
+  }
+}
+
+/**
+ * Get trending stocks (most active by volume)
+ */
+async function getTrendingStocks(limit = 5) {
+  try {
+    const preOpenData = await nseIndia.getPreOpenMarketData();
+
+    if (!preOpenData || !preOpenData.data || !Array.isArray(preOpenData.data)) {
+      return [];
+    }
+
+    // Get most active stocks by total turnover
+    const topStocks = preOpenData.data
+      .filter(
+        (item) =>
+          item.metadata &&
+          item.metadata.symbol &&
+          item.metadata.totalTurnover &&
+          item.metadata.lastPrice
+      )
+      .sort(
+        (a, b) =>
+          parseFloat(b.metadata.totalTurnover) -
+          parseFloat(a.metadata.totalTurnover)
+      )
+      .slice(0, limit);
+
+    // Fetch fresh equity details for each stock to get accurate price change
+    const trendingStocks = await Promise.all(
+      topStocks.map(async (item) => {
+        const symbol = item.metadata.symbol;
+        let lastPrice = parseFloat(item.metadata.lastPrice) || 0;
+        let pChange = parseFloat(item.metadata.pChange) || 0;
+        let change = parseFloat(item.metadata.change) || 0;
+
+        try {
+          // Fetch fresh equity details to get accurate price change
+          const equityDetails = await nseIndia.getEquityDetails(symbol);
+          if (equityDetails && equityDetails.priceInfo) {
+            const priceInfo = equityDetails.priceInfo;
+            const currentPrice = parseFloat(priceInfo.lastPrice) || 0;
+            const prevClose =
+              parseFloat(priceInfo.previousClose) || currentPrice;
+
+            if (currentPrice > 0 && prevClose > 0) {
+              lastPrice = currentPrice;
+              change = currentPrice - prevClose;
+              // Calculate change percentage correctly
+              pChange = (change / prevClose) * 100;
+            }
+          }
+        } catch (error) {
+          // If fetching equity details fails, use pre-open data as fallback
+          console.warn(
+            `Failed to fetch fresh data for ${symbol}, using pre-open data:`,
+            error
+          );
+          change = parseFloat(item.metadata.change) || 0;
+        }
+
+        return {
+          symbol: symbol,
+          companyName:
+            item.metadata.companyName ||
+            item.metadata.identifier ||
+            item.metadata.symbol,
+          lastPrice: lastPrice,
+          change: change,
+          pChange: pChange,
+        };
+      })
+    );
+
+    return trendingStocks;
+  } catch (error) {
+    console.error("Error fetching trending stocks:", error);
+    return [];
+  }
+}
+
+/**
+ * Get company description from Yahoo Finance
+ */
+async function getCompanyDescription(symbol) {
+  try {
+    // Convert NSE symbol to Yahoo Finance format
+    const yahooSymbol = `${symbol}.NS`;
+
+    // Get company profile from Yahoo Finance
+    const profile = await yahooFinance.quoteSummary(yahooSymbol, {
+      modules: ["assetProfile"],
+    });
+
+    if (
+      profile &&
+      profile.assetProfile &&
+      profile.assetProfile.longBusinessSummary
+    ) {
+      return profile.assetProfile.longBusinessSummary;
+    }
+
+    return null;
+  } catch (error) {
+    console.error(
+      `Error fetching company description for ${symbol}:`,
+      error.message
+    );
+    return null;
+  }
+}
+
+/**
+ * Get detailed stock profile
+ */
+async function getStockProfile(symbol) {
+  try {
+    // Get equity details from NSE
+    const quoteData = await nseIndia.getEquityDetails(symbol);
+
+    if (!quoteData) {
+      throw new Error(`Stock data not found for ${symbol}`);
+    }
+
+    const priceInfo = quoteData.priceInfo || {};
+    const info = quoteData.info || {};
+    const metadata = quoteData.metadata || {};
+    const securityInfo = quoteData.securityInfo || {};
+
+    const currentPrice = parseFloat(priceInfo.lastPrice) || 0;
+    const prevClose = parseFloat(priceInfo.previousClose) || currentPrice;
+    const change = currentPrice - prevClose;
+    const changePct = (change / prevClose) * 100;
+
+    // Get real company description from Yahoo Finance
+    const companyDescription = await getCompanyDescription(symbol);
+
+    // Try to get additional financial data from NSE corporate info
+    let corporateInfo = {};
+    let nseEps = null;
+    let calculatedRoe = null;
+    let calculatedRoa = null;
+    let calculatedDebtToEquity = null;
+
+    try {
+      corporateInfo = (await nseIndia.getEquityCorporateInfo(symbol)) || {};
+
+      // Extract EPS from financial results if available
+      if (corporateInfo.financial_results?.data?.length > 0) {
+        const latestResult = corporateInfo.financial_results.data[0];
+        nseEps = parseFloat(latestResult.reDilEPS) || null;
+        if (nseEps)
+          console.log(`✓ NSE EPS extracted for ${symbol}: ₹${nseEps}`);
+
+        // Try to calculate financial ratios from available data
+        const income = parseFloat(latestResult.income) || null;
+        const profit = parseFloat(latestResult.proLossAftTax) || null;
+
+        if (profit && income) {
+          // Calculate ROA (Return on Assets) = Net Income / Total Assets
+          // We'll use a proxy calculation since we don't have exact balance sheet data
+          // ROA ≈ Net Profit Margin (as a rough approximation)
+          calculatedRoa = (profit / income) * 100;
+          console.log(
+            `✓ Calculated ROA for ${symbol}: ${calculatedRoa.toFixed(2)}%`
+          );
+        }
+      }
+    } catch (e) {
+      console.log(`Corporate info not available for ${symbol}`);
+    }
+
+    // Try to get financial ratios from Yahoo Finance as backup
+    let yahooFinancials = {};
+    try {
+      const yahooSymbol = `${symbol}.NS`;
+
+      // Try both quoteSummary and quote methods for maximum data coverage
+      let yahooData = null;
+      let yahooQuote = null;
+
+      try {
+        yahooData = await yahooFinance.quoteSummary(yahooSymbol, {
+          modules: [
+            "defaultKeyStatistics",
+            "financialData",
+            "summaryDetail",
+            "balanceSheetHistory",
+          ],
+        });
+      } catch (e) {
+        console.log(`Yahoo quoteSummary failed for ${symbol}:`, e.message);
+      }
+
+      try {
+        yahooQuote = await yahooFinance.quote(yahooSymbol);
+      } catch (e) {
+        console.log(`Yahoo quote failed for ${symbol}:`, e.message);
+      }
+
+      if (yahooData || yahooQuote) {
+        const keyStats = yahooData?.defaultKeyStatistics || {};
+        const financialData = yahooData?.financialData || {};
+        const summaryDetail = yahooData?.summaryDetail || {};
+        const quote = yahooQuote || {};
+
+        yahooFinancials = {
+          // PE Ratio - try multiple sources
+          peRatio:
+            quote.trailingPE ||
+            keyStats.trailingPE?.raw ||
+            quote.forwardPE ||
+            keyStats.forwardPE?.raw ||
+            null,
+
+          // PB Ratio - with validation and alternative calculation
+          pbRatio: (() => {
+            const quotePB = quote.priceToBook;
+            const keyStatsPB = keyStats.priceToBook?.raw;
+
+            // Validate P/B ratios - should typically be between 0.1 and 50 for most stocks
+            const isValidPB = (pb) => pb && pb > 0.1 && pb < 50;
+
+            if (isValidPB(quotePB)) return quotePB;
+            if (isValidPB(keyStatsPB)) return keyStatsPB;
+
+            // For stocks with invalid P/B, try to estimate using ROE and P/E
+            // P/B ≈ P/E × ROE (rough approximation)
+            const pe = quote.trailingPE || keyStats.trailingPE?.raw;
+            const roe =
+              financialData.returnOnEquity?.raw || financialData.returnOnEquity;
+
+            if (pe && roe && pe > 0 && roe > 0) {
+              const estimatedPB = pe * roe;
+              if (isValidPB(estimatedPB)) {
+                console.log(
+                  `📊 Estimated P/B for ${symbol} using P/E×ROE: ${estimatedPB.toFixed(
+                    2
+                  )}`
+                );
+                return estimatedPB;
+              }
+            }
+
+            // If all methods fail, return null
+            return null;
+          })(),
+
+          // EPS - try multiple sources
+          eps:
+            quote.epsTrailingTwelveMonths ||
+            keyStats.trailingEps?.raw ||
+            financialData.trailingEps?.raw ||
+            quote.epsForward ||
+            null,
+
+          // Financial Health Ratios
+          roe:
+            financialData.returnOnEquity?.raw ||
+            financialData.returnOnEquity ||
+            null,
+          roa:
+            financialData.returnOnAssets?.raw ||
+            financialData.returnOnAssets ||
+            null,
+          debtToEquity:
+            financialData.debtToEquity?.raw ||
+            financialData.debtToEquity ||
+            null,
+
+          // Other metrics
+          beta: keyStats.beta || quote.beta || null,
+          dividendYield: quote.dividendYield
+            ? quote.dividendYield / 100
+            : summaryDetail.dividendYield?.raw || null,
+          marketCap: quote.marketCap || summaryDetail.marketCap?.raw || null,
+          bookValue: quote.bookValue || keyStats.bookValue?.raw || null,
+        };
+
+        // Convert ROE and ROA from decimal to percentage if needed
+        if (yahooFinancials.roe && yahooFinancials.roe < 1) {
+          yahooFinancials.roe = yahooFinancials.roe * 100;
+        }
+        if (yahooFinancials.roa && yahooFinancials.roa < 1) {
+          yahooFinancials.roa = yahooFinancials.roa * 100;
+        }
+
+        // Log data quality issues
+        if (quote.priceToBook && quote.priceToBook > 50) {
+          console.log(
+            `⚠️  Suspicious P/B ratio for ${symbol}: ${quote.priceToBook} (Book Value: ${quote.bookValue}) - Filtering out`
+          );
+        }
+
+        console.log(`Yahoo Finance data for ${symbol}:`, {
+          peRatio: yahooFinancials.peRatio,
+          pbRatio: yahooFinancials.pbRatio,
+          eps: yahooFinancials.eps,
+          roe: yahooFinancials.roe,
+          roa: yahooFinancials.roa,
+          debtToEquity: yahooFinancials.debtToEquity,
+          beta: yahooFinancials.beta,
+          pbFiltered: quote.priceToBook > 50 ? "YES" : "NO",
+        });
+      }
+    } catch (e) {
+      console.log(`Yahoo Finance data not available for ${symbol}:`, e.message);
+    }
+
+    // Calculate market cap if we have shares outstanding
+    const sharesOutstanding = parseFloat(securityInfo.issuedSize) || 0;
+    const marketCap = sharesOutstanding * currentPrice;
+
+    // Build profile object
+    const profile = {
+      symbol: symbol,
+      companyName: info.companyName || metadata.companyName || symbol,
+      industry: info.industry || metadata.industry || "N/A",
+      sector: metadata.sector || "N/A",
+      isin: metadata.isin || "N/A",
+      description: companyDescription || "N/A",
+
+      // Additional company information for enhanced description
+      businessDescription:
+        info.businessDescription ||
+        metadata.businessDescription ||
+        info.description ||
+        metadata.description ||
+        "",
+      companyProfile: info.companyProfile || metadata.companyProfile || "",
+      businessModel: info.businessModel || metadata.businessModel || "",
+      keyProducts: info.keyProducts || metadata.keyProducts || "",
+      marketPosition: info.marketPosition || metadata.marketPosition || "",
+      foundedYear: info.foundedYear || metadata.foundedYear || "",
+      headquarters: info.headquarters || metadata.headquarters || "",
+      website: info.website || metadata.website || "",
+
+      // Price Information
+      currentPrice: currentPrice,
+      change: change,
+      changePct: changePct,
+      previousClose: prevClose,
+      open: parseFloat(priceInfo.open) || 0,
+      high: parseFloat(priceInfo.intraDayHighLow?.max) || 0,
+      low: parseFloat(priceInfo.intraDayHighLow?.min) || 0,
+      volume: parseFloat(priceInfo.totalTradedVolume) || 0,
+      totalTradedValue: parseFloat(priceInfo.totalTradedValue) || 0,
+
+      // 52 Week Data
+      week52High: parseFloat(priceInfo.weekHighLow?.max) || 0,
+      week52Low: parseFloat(priceInfo.weekHighLow?.min) || 0,
+
+      // Market Data & Fundamentals
+      marketCap: marketCap > 0 ? marketCap : yahooFinancials.marketCap || null,
+      bookValue:
+        parseFloat(securityInfo.issuedSize) ||
+        yahooFinancials.bookValue ||
+        null,
+      faceValue: parseFloat(securityInfo.faceValue) || null,
+
+      // Financial ratios - try NSE first, then Yahoo Finance as backup
+      peRatio:
+        parseFloat(priceInfo.pe) ||
+        parseFloat(info.pe) ||
+        parseFloat(metadata.pe) ||
+        parseFloat(securityInfo.pe) ||
+        yahooFinancials.peRatio ||
+        null,
+      pbRatio:
+        parseFloat(priceInfo.pb) ||
+        parseFloat(info.pb) ||
+        parseFloat(metadata.pb) ||
+        parseFloat(securityInfo.pb) ||
+        yahooFinancials.pbRatio ||
+        null,
+      eps:
+        parseFloat(priceInfo.eps) ||
+        parseFloat(info.eps) ||
+        parseFloat(metadata.eps) ||
+        parseFloat(securityInfo.eps) ||
+        nseEps ||
+        yahooFinancials.eps ||
+        null,
+      dividendYield:
+        parseFloat(priceInfo.dividendYield) ||
+        parseFloat(info.dividendYield) ||
+        yahooFinancials.dividendYield ||
+        null,
+      beta:
+        parseFloat(priceInfo.beta) ||
+        parseFloat(info.beta) ||
+        parseFloat(metadata.beta) ||
+        yahooFinancials.beta ||
+        null,
+      debtToEquity:
+        yahooFinancials.debtToEquity ||
+        calculatedDebtToEquity ||
+        parseFloat(info.debtToEquity) ||
+        null,
+
+      // Financial Health Ratios - prioritize Yahoo Finance data, then calculated values
+      roe:
+        yahooFinancials.roe ||
+        calculatedRoe ||
+        parseFloat(corporateInfo.roe) ||
+        null,
+      roa:
+        yahooFinancials.roa ||
+        calculatedRoa ||
+        parseFloat(corporateInfo.roa) ||
+        null,
+
+      // Additional metrics from corporate info if available
+      revenue: parseFloat(corporateInfo.revenue) || null,
+      netProfit: parseFloat(corporateInfo.netProfit) || null,
+
+      // Other Info
+      lastUpdateTime: priceInfo.lastUpdateTime || new Date().toLocaleString(),
+    };
+
+    return profile;
+  } catch (error) {
+    console.error(`Error fetching stock profile for ${symbol}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get historical chart data for a stock
+ */
+async function getStockChartData(symbol, timePeriod = "1D") {
+  try {
+    const yahooSymbol = `${symbol}.NS`;
+    const endDate = new Date();
+    const startDate = new Date();
+
+    // Calculate start date based on time period
+    switch (timePeriod) {
+      case "1D":
+        // For 1 day, get intraday data (1 hour intervals)
+        startDate.setDate(startDate.getDate() - 1);
+        break;
+      case "1Week":
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case "1Month":
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case "6Months":
+        startDate.setMonth(startDate.getMonth() - 6);
+        break;
+      case "1Year":
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      default:
+        startDate.setDate(startDate.getDate() - 7);
+    }
+
+    // Determine interval based on time period
+    let interval = "1d"; // Default to daily
+    if (timePeriod === "1D") {
+      interval = "1h"; // Hourly for 1 day
+    } else if (timePeriod === "1Week") {
+      interval = "1d"; // Daily for 1 week
+    } else {
+      interval = "1d"; // Daily for longer periods
+    }
+
+    const historical = await yahooFinance.chart(yahooSymbol, {
+      period1: startDate,
+      period2: endDate,
+      interval: interval,
+    });
+
+    if (!historical || !historical.quotes || historical.quotes.length === 0) {
+      return { labels: [], prices: [], volumes: [] };
+    }
+
+    const quotes = historical.quotes;
+    const labels = [];
+    const prices = [];
+    const volumes = [];
+
+    quotes.forEach((quote) => {
+      if (quote.date && quote.close !== null && quote.close !== undefined) {
+        const date = new Date(quote.date * 1000);
+
+        // Format labels based on time period
+        let label;
+        if (timePeriod === "1D") {
+          label = date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+        } else if (timePeriod === "1Week") {
+          label = date.toLocaleDateString("en-US", {
+            weekday: "short",
+            day: "numeric",
+          });
+        } else {
+          label = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }
+
+        labels.push(label);
+        prices.push(parseFloat(quote.close) || 0);
+        volumes.push(parseFloat(quote.volume) || 0);
+      }
+    });
+
+    return {
+      labels,
+      prices,
+      volumes,
+    };
+  } catch (error) {
+    console.error(`Error fetching chart data for ${symbol}:`, error);
+    return { labels: [], prices: [], volumes: [] };
+  }
+}
+
 module.exports = {
   getIndexData,
   getMarketData,
@@ -695,4 +1305,8 @@ module.exports = {
   getVixData,
   getSectoralPerformance,
   getStockList, // Export for testing
+  searchStocks,
+  getTrendingStocks,
+  getStockProfile,
+  getStockChartData,
 };

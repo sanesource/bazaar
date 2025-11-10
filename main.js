@@ -83,3 +83,23 @@ ipcMain.handle("get-vix-data", async () => {
   const { getVixData } = require("./src/services/data-fetcher");
   return await getVixData();
 });
+
+ipcMain.handle("search-stocks", async (event, query) => {
+  const { searchStocks } = require("./src/services/data-fetcher");
+  return await searchStocks(query);
+});
+
+ipcMain.handle("get-trending-stocks", async (event, limit) => {
+  const { getTrendingStocks } = require("./src/services/data-fetcher");
+  return await getTrendingStocks(limit);
+});
+
+ipcMain.handle("get-stock-profile", async (event, symbol) => {
+  const { getStockProfile } = require("./src/services/data-fetcher");
+  return await getStockProfile(symbol);
+});
+
+ipcMain.handle("get-stock-chart-data", async (event, symbol, timePeriod) => {
+  const { getStockChartData } = require("./src/services/data-fetcher");
+  return await getStockChartData(symbol, timePeriod);
+});

@@ -8,5 +8,11 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("get-gainers-losers", params),
   getSectoralData: (params) => ipcRenderer.invoke("get-sectoral-data", params),
   getVixData: () => ipcRenderer.invoke("get-vix-data"),
+  searchStocks: (query) => ipcRenderer.invoke("search-stocks", query),
+  getTrendingStocks: (limit) =>
+    ipcRenderer.invoke("get-trending-stocks", limit),
+  getStockProfile: (symbol) => ipcRenderer.invoke("get-stock-profile", symbol),
+  getStockChartData: (symbol, timePeriod) =>
+    ipcRenderer.invoke("get-stock-chart-data", symbol, timePeriod),
   platform: process.platform,
 });

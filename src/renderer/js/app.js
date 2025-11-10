@@ -45,6 +45,17 @@ class BazaarApp {
     // Theme elements
     this.themeSelector = document.getElementById("theme-selector");
     this.body = document.body;
+
+    // Stock search elements
+    this.stockSearchInput = document.getElementById("stock-search-input");
+    this.searchResults = document.getElementById("search-results");
+    this.trendingStocksList = document.getElementById("trending-stocks-list");
+
+    // Stock profile screen elements
+    this.stockProfileScreen = document.getElementById("stock-profile-screen");
+    this.stockProfileContent = document.getElementById("stock-profile-content");
+    this.backBtn = document.getElementById("back-btn");
+    this.profileTitle = document.getElementById("profile-title");
   }
 
   attachEventListeners() {
@@ -64,11 +75,48 @@ class BazaarApp {
     this.themeSelector.addEventListener("change", () => {
       this.switchTheme(this.themeSelector.value);
     });
+
+    // Stock search event listeners
+    let searchTimeout;
+    this.stockSearchInput.addEventListener("input", (e) => {
+      const query = e.target.value.trim();
+
+      // Clear previous timeout
+      clearTimeout(searchTimeout);
+
+      if (query.length === 0) {
+        this.hideSearchResults();
+        return;
+      }
+
+      // Debounce search
+      searchTimeout = setTimeout(() => {
+        this.performSearch(query);
+      }, 300);
+    });
+
+    // Hide search results when clicking outside
+    document.addEventListener("click", (e) => {
+      if (
+        !this.stockSearchInput.contains(e.target) &&
+        !this.searchResults.contains(e.target)
+      ) {
+        this.hideSearchResults();
+      }
+    });
+
+    // Back button event listener
+    this.backBtn.addEventListener("click", () => {
+      this.closeStockProfile();
+    });
   }
 
   async startApp() {
     // Initialize theme from localStorage
     this.initializeTheme();
+
+    // Load trending stocks first (doesn't need loading overlay)
+    await this.loadTrendingStocks();
 
     // Initial load
     await this.refreshTickers();
@@ -224,6 +272,9 @@ class BazaarApp {
         if (data.gainers && data.gainers.length > 0) {
           data.gainers.forEach((stock) => {
             const item = UIComponents.createStockItem(stock);
+            item.addEventListener("click", () => {
+              this.openStockProfile(stock.symbol);
+            });
             this.gainersList.appendChild(item);
           });
         } else {
@@ -234,6 +285,9 @@ class BazaarApp {
         if (data.losers && data.losers.length > 0) {
           data.losers.forEach((stock) => {
             const item = UIComponents.createStockItem(stock);
+            item.addEventListener("click", () => {
+              this.openStockProfile(stock.symbol);
+            });
             this.losersList.appendChild(item);
           });
         } else {
@@ -278,11 +332,17 @@ class BazaarApp {
         } else {
           // Different stock, replace the item
           const newItem = UIComponents.createStockItem(stock);
+          newItem.addEventListener("click", () => {
+            this.openStockProfile(stock.symbol);
+          });
           listElement.replaceChild(newItem, existingItem);
         }
       } else {
         // Need to create a new item
         const newItem = UIComponents.createStockItem(stock);
+        newItem.addEventListener("click", () => {
+          this.openStockProfile(stock.symbol);
+        });
         listElement.appendChild(newItem);
       }
     });
@@ -435,6 +495,119 @@ class BazaarApp {
       console.log("[Gainers/Losers] Auto-refreshing...");
       this.refreshGainersLosers();
     }, this.gainersLosersRefreshInterval);
+  }
+
+  // Stock Search Methods
+  async loadTrendingStocks() {
+    try {
+      const trendingStocks = await window.api.getTrendingStocks(5);
+
+      this.trendingStocksList.innerHTML = "";
+
+      if (trendingStocks && trendingStocks.length > 0) {
+        trendingStocks.forEach((stock) => {
+          const item = UIComponents.createTrendingStockItem(stock);
+          item.addEventListener("click", () => {
+            this.openStockProfile(stock.symbol);
+          });
+          this.trendingStocksList.appendChild(item);
+        });
+      } else {
+        this.trendingStocksList.innerHTML =
+          '<div class="empty-message">No trending stocks available</div>';
+      }
+    } catch (error) {
+      console.error("Error loading trending stocks:", error);
+      this.trendingStocksList.innerHTML =
+        '<div class="error-message">Failed to load trending stocks</div>';
+    }
+  }
+
+  async performSearch(query) {
+    try {
+      const results = await window.api.searchStocks(query);
+
+      this.searchResults.innerHTML = "";
+
+      if (results && results.length > 0) {
+        results.forEach((stock) => {
+          const item = UIComponents.createSearchResultItem(stock);
+          item.addEventListener("click", () => {
+            this.openStockProfile(stock.symbol);
+            this.hideSearchResults();
+            this.stockSearchInput.value = "";
+          });
+          this.searchResults.appendChild(item);
+        });
+        this.showSearchResults();
+      } else {
+        this.searchResults.innerHTML =
+          '<div class="empty-message" style="padding: 10px; text-align: center;">No results found</div>';
+        this.showSearchResults();
+      }
+    } catch (error) {
+      console.error("Error searching stocks:", error);
+      this.searchResults.innerHTML =
+        '<div class="error-message" style="padding: 10px; text-align: center;">Search failed</div>';
+      this.showSearchResults();
+    }
+  }
+
+  showSearchResults() {
+    this.searchResults.classList.remove("hidden");
+  }
+
+  hideSearchResults() {
+    this.searchResults.classList.add("hidden");
+  }
+
+  async openStockProfile(symbol) {
+    try {
+      // Update the title to show the stock ticker
+      this.profileTitle.textContent = symbol;
+
+      // Show screen with enhanced loading state
+      this.stockProfileContent.innerHTML = `
+        <div class="stock-profile-loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Loading ${symbol} profile...</div>
+          <div style="font-size: 10px; color: var(--xp-gray); margin-top: 8px;">
+            Fetching market data and financial metrics
+          </div>
+        </div>
+      `;
+      this.stockProfileScreen.classList.remove("hidden");
+
+      // Fetch stock profile
+      const profile = await window.api.getStockProfile(symbol);
+
+      // Create and display profile
+      const profileElement = UIComponents.createStockProfile(profile);
+      this.stockProfileContent.innerHTML = "";
+      this.stockProfileContent.appendChild(profileElement);
+    } catch (error) {
+      console.error("Error loading stock profile:", error);
+      this.stockProfileContent.innerHTML = `
+        <div class="stock-profile-error">
+          <strong>⚠️ Failed to load stock profile</strong><br>
+          <div style="margin-top: 8px; font-size: 11px;">
+            ${
+              error.message ||
+              "Please check your internet connection and try again."
+            }
+          </div>
+          <button onclick="window.location.reload()" style="margin-top: 12px; padding: 6px 12px; background: var(--xp-button); border: 1px solid var(--xp-border); cursor: pointer;">
+            Retry
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  closeStockProfile() {
+    this.stockProfileScreen.classList.add("hidden");
+    this.stockProfileContent.innerHTML =
+      '<div class="loading-text">⏳ Loading profile...</div>';
   }
 
   // Theme Management Methods

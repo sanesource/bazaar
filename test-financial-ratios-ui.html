@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Financial Ratios in Stock Profile</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .test-button:hover {
+        background: #0056b3;
+      }
+      .results {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 5px;
+      }
+      .ratio-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+      }
+      .ratio-label {
+        font-weight: bold;
+      }
+      .ratio-value {
+        color: #007bff;
+      }
+      .missing {
+        color: #dc3545;
+      }
+      .available {
+        color: #28a745;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Financial Ratios Test</h1>
+      <p>
+        Test if Debt/Equity, ROE, and ROA ratios are now showing in stock
+        profiles:
+      </p>
+
+      <button class="test-button" onclick="testStock('RELIANCE')">
+        Test RELIANCE
+      </button>
+      <button class="test-button" onclick="testStock('TCS')">Test TCS</button>
+      <button class="test-button" onclick="testStock('INFY')">Test INFY</button>
+      <button class="test-button" onclick="testStock('HDFCBANK')">
+        Test HDFCBANK
+      </button>
+
+      <div id="results" class="results" style="display: none">
+        <h3>Results for <span id="stock-symbol"></span></h3>
+        <div id="ratio-list"></div>
+      </div>
+    </div>
+
+    <script>
+      // Import the data fetcher (this would normally be handled by your build system)
+      const { getStockProfile } = require("./src/services/data-fetcher.js");
+
+      async function testStock(symbol) {
+        const resultsDiv = document.getElementById("results");
+        const stockSymbol = document.getElementById("stock-symbol");
+        const ratioList = document.getElementById("ratio-list");
+
+        stockSymbol.textContent = symbol;
+        ratioList.innerHTML = "<p>Loading...</p>";
+        resultsDiv.style.display = "block";
+
+        try {
+          const profile = await getStockProfile(symbol);
+
+          const ratios = [
+            {
+              label: "Debt/Equity",
+              value: profile.debtToEquity,
+              format: "ratio",
+            },
+            { label: "ROE", value: profile.roe, format: "percentage" },
+            { label: "ROA", value: profile.roa, format: "percentage" },
+            { label: "P/E Ratio", value: profile.peRatio, format: "ratio" },
+            { label: "P/B Ratio", value: profile.pbRatio, format: "ratio" },
+            { label: "EPS", value: profile.eps, format: "currency" },
+            { label: "Beta", value: profile.beta, format: "ratio" },
+          ];
+
+          let html = "";
+          ratios.forEach((ratio) => {
+            const isAvailable =
+              ratio.value !== null &&
+              ratio.value !== undefined &&
+              !isNaN(ratio.value);
+            const statusClass = isAvailable ? "available" : "missing";
+
+            let displayValue = "—";
+            if (isAvailable) {
+              switch (ratio.format) {
+                case "percentage":
+                  displayValue = `${Number(ratio.value).toFixed(2)}%`;
+                  break;
+                case "currency":
+                  displayValue = `₹${Number(ratio.value).toFixed(2)}`;
+                  break;
+                case "ratio":
+                  displayValue = Number(ratio.value).toFixed(2);
+                  break;
+                default:
+                  displayValue = ratio.value.toString();
+              }
+            }
+
+            html += `
+                        <div class="ratio-item">
+                            <span class="ratio-label">${ratio.label}:</span>
+                            <span class="ratio-value ${statusClass}">${displayValue}</span>
+                        </div>
+                    `;
+          });
+
+          ratioList.innerHTML = html;
+        } catch (error) {
+          ratioList.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>
