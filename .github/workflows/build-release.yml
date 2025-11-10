@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
 
     strategy:
       matrix:
@@ -46,15 +47,40 @@ jobs:
       - name: Build for ${{ matrix.platform }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: true
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         shell: bash
         run: |
+          set -e  # Exit on error
+          echo "Building for platform: ${{ matrix.platform }}"
+
           if [ "${{ matrix.platform }}" = "mac" ]; then
-            npm run build:mac
+            echo "Starting macOS build..."
+            npm run clean
+            npx electron-builder --mac --publish never || {
+              echo "Build failed, checking dist directory..."
+              ls -lah dist/ || echo "No dist directory found"
+              exit 1
+            }
           elif [ "${{ matrix.platform }}" = "linux" ]; then
-            npm run build:linux
+            echo "Starting Linux build..."
+            npm run clean
+            npx electron-builder --linux --publish never || {
+              echo "Build failed, checking dist directory..."
+              ls -lah dist/ || echo "No dist directory found"
+              exit 1
+            }
           elif [ "${{ matrix.platform }}" = "windows" ]; then
-            npm run build:win
+            echo "Starting Windows build..."
+            npm run clean
+            npx electron-builder --win --publish never || {
+              echo "Build failed, checking dist directory..."
+              ls -lah dist/ || echo "No dist directory found"
+              exit 1
+            }
           fi
+
+          echo "Build completed successfully"
 
       - name: List dist contents (debug)
         shell: bash
