@@ -707,7 +707,7 @@ async function searchStocks(query) {
     }
 
     // Search in symbols and company names
-    const results = preOpenData.data
+    const matchedStocks = preOpenData.data
       .filter((item) => {
         if (!item.metadata || !item.metadata.symbol) return false;
 
@@ -720,17 +720,53 @@ async function searchStocks(query) {
 
         return symbol.includes(query) || companyName.includes(query);
       })
-      .slice(0, 10) // Limit to 10 results
-      .map((item) => ({
-        symbol: item.metadata.symbol,
-        companyName:
-          item.metadata.companyName ||
-          item.metadata.identifier ||
-          item.metadata.symbol,
-        lastPrice: parseFloat(item.metadata.lastPrice) || 0,
-        change: parseFloat(item.metadata.change) || 0,
-        pChange: parseFloat(item.metadata.pChange) || 0,
-      }));
+      .slice(0, 10); // Limit to 10 results
+
+    // Fetch fresh equity details for each stock to get accurate price change
+    const results = await Promise.all(
+      matchedStocks.map(async (item) => {
+        const symbol = item.metadata.symbol;
+        let lastPrice = parseFloat(item.metadata.lastPrice) || 0;
+        let pChange = parseFloat(item.metadata.pChange) || 0;
+
+        let change = 0;
+        try {
+          // Fetch fresh equity details to get accurate price change
+          const equityDetails = await nseIndia.getEquityDetails(symbol);
+          if (equityDetails && equityDetails.priceInfo) {
+            const priceInfo = equityDetails.priceInfo;
+            const currentPrice = parseFloat(priceInfo.lastPrice) || 0;
+            const prevClose =
+              parseFloat(priceInfo.previousClose) || currentPrice;
+
+            if (currentPrice > 0 && prevClose > 0) {
+              lastPrice = currentPrice;
+              change = currentPrice - prevClose;
+              // Calculate change percentage correctly
+              pChange = (change / prevClose) * 100;
+            }
+          }
+        } catch (error) {
+          // If fetching equity details fails, use pre-open data as fallback
+          console.warn(
+            `Failed to fetch fresh data for ${symbol}, using pre-open data:`,
+            error
+          );
+          change = parseFloat(item.metadata.change) || 0;
+        }
+
+        return {
+          symbol: symbol,
+          companyName:
+            item.metadata.companyName ||
+            item.metadata.identifier ||
+            item.metadata.symbol,
+          lastPrice: lastPrice,
+          change: change,
+          pChange: pChange,
+        };
+      })
+    );
 
     return results;
   } catch (error) {
