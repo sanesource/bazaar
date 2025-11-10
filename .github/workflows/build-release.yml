@@ -49,6 +49,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: true
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          # macOS Code Signing (optional - only if secrets are configured)
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASS: ${{ secrets.APPLE_ID_PASS }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
         shell: bash
         run: |
           set -e  # Exit on error
@@ -57,11 +64,45 @@ jobs:
           if [ "${{ matrix.platform }}" = "mac" ]; then
             echo "Starting macOS build..."
             npm run clean
+            
+            # Setup code signing if certificates are available
+            if [ -n "$APPLE_CERTIFICATE" ] && [ -n "$APPLE_CERTIFICATE_PASSWORD" ]; then
+              echo "Setting up code signing certificates..."
+              # Create variables file
+              CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+              KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+              
+              # Decode certificate
+              echo "$APPLE_CERTIFICATE" | base64 --decode > "$CERTIFICATE_PATH"
+              
+              # Create temporary keychain
+              security create-keychain -p "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+              security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+              security unlock-keychain -p "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+              
+              # Import certificate
+              security import "$CERTIFICATE_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+              security list-keychain -d user -s "$KEYCHAIN_PATH"
+              
+              # Set partition list
+              security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" || true
+              
+              echo "Code signing setup complete"
+            else
+              echo "No code signing certificates found. Building unsigned app."
+              echo "Note: Users will need to remove quarantine attribute to run the app."
+            fi
+            
             npx electron-builder --mac --publish never || {
               echo "Build failed, checking dist directory..."
               ls -lah dist/ || echo "No dist directory found"
               exit 1
             }
+            
+            # Clean up keychain if created
+            if [ -n "$APPLE_CERTIFICATE" ] && [ -f "$KEYCHAIN_PATH" ]; then
+              security delete-keychain "$KEYCHAIN_PATH" || true
+            fi
           elif [ "${{ matrix.platform }}" = "linux" ]; then
             echo "Starting Linux build..."
             npm run clean

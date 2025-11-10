@@ -90,6 +90,7 @@ After the workflow completes, the following artifacts will be available:
 - Repository must have Actions enabled
 - No additional secrets required (uses built-in `GITHUB_TOKEN`)
 - For macOS code signing, add signing certificates to secrets (optional)
+  - See [macOS Installation Guide](./MACOS_INSTALLATION.md) for setup instructions
 
 ## Troubleshooting
 
@@ -98,6 +99,16 @@ After the workflow completes, the following artifacts will be available:
 - macOS builds are currently unsigned (`identity: null` in package.json)
 - To sign builds, you'll need an Apple Developer account and certificates
 - Add signing certificates to GitHub secrets
+- See [macOS Installation Guide](./MACOS_INSTALLATION.md) for code signing setup
+
+### Users Getting "App is Damaged" Error on macOS
+
+This is a common macOS Gatekeeper issue with unsigned apps. Users can fix it by:
+
+1. **Quick Fix**: Run `xattr -cr /path/to/Bazaar.app` in Terminal
+2. **Alternative**: Right-click the app and select "Open"
+
+For detailed instructions, see [macOS Installation Guide](./MACOS_INSTALLATION.md)
 
 ### Build Fails on Linux
 

@@ -76,6 +76,7 @@ All documentation is in the [`docs/`](docs/) folder:
 - **[FEATURES.md](docs/FEATURES.md)** - Detailed features
 - **[PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** - Architecture
 - **[INSTALLATION.md](docs/INSTALLATION.md)** - Platform-specific setup
+- **[MACOS_INSTALLATION.md](docs/MACOS_INSTALLATION.md)** - macOS installation and Gatekeeper fix
 - **[BUILD_GUIDE.md](docs/BUILD_GUIDE.md)** - Building executables
 - **[CHANGELOG.md](docs/CHANGELOG.md)** - Version history
 
@@ -109,6 +110,20 @@ All data fetched from official NSE India API:
 - ✅ Real-time market data
 
 ## 🐛 Troubleshooting
+
+### macOS "App is Damaged" Error
+
+If you see **"Bazaar" is damaged and can't be opened** when installing on macOS:
+
+1. **Quick Fix**: Open Terminal and run:
+
+   ```bash
+   xattr -cr /path/to/Bazaar.app
+   ```
+
+2. **Alternative**: Right-click the app and select "Open"
+
+For detailed instructions, see [macOS Installation Guide](docs/MACOS_INSTALLATION.md).
 
 ### Linux Sandbox Error
 

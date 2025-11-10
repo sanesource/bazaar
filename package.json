@@ -60,7 +60,9 @@
       ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.finance",
-      "identity": null
+      "identity": null,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
     },
     "linux": {
       "target": [
