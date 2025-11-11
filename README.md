@@ -2,7 +2,7 @@
 
 A lightweight, cross-platform Electron desktop application for displaying real-time Indian stock market information with a classic light interface.
 
-![Bazaar Screenshot](https://github.com/user-attachments/assets/7bd10f5e-cacd-4087-a841-95d28551f0d5)
+![Bazaar Screenshot](https://github.com/user-attachments/assets/4d7947c9-31ad-40a8-a9a4-8cd7b0aa30d4)
 
 ## ✨ Features
 
