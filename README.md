@@ -55,7 +55,7 @@ npm start
 
 ### Download
 
-1. Go to the [Releases](https://github.com/your-username/bazaar/releases) page
+1. Go to the [Releases](https://github.com/sanesource/bazaar/releases) page
 2. Download the appropriate package for your platform:
    - **macOS**: `Bazaar-darwin-x64.dmg` or `Bazaar-darwin-arm64.dmg`
    - **Windows**: `Bazaar-win32-x64.exe`
