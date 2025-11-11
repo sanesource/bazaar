@@ -51,6 +51,53 @@ scripts\setup.bat
 npm start
 ```
 
+## 📥 Download & Install from Releases
+
+### Download
+
+1. Go to the [Releases](https://github.com/your-username/bazaar/releases) page
+2. Download the appropriate package for your platform:
+   - **macOS**: `Bazaar-darwin-x64.dmg` or `Bazaar-darwin-arm64.dmg`
+   - **Windows**: `Bazaar-win32-x64.exe`
+   - **Linux**: `Bazaar-linux-x64.AppImage` or `.deb` package
+
+### Installation
+
+#### macOS
+
+1. Open the downloaded `.dmg` file
+2. Drag `Bazaar.app` to your `Applications` folder
+3. **Important**: Before first launch, open Terminal and run:
+
+   ```bash
+   xattr -cr /Applications/Bazaar.app
+   ```
+
+   This removes macOS quarantine attributes that prevent unsigned apps from running.
+
+4. Launch Bazaar from Applications or Spotlight
+
+#### Windows
+
+1. Run the downloaded `.exe` installer
+2. Follow the installation wizard
+3. Launch Bazaar from Start Menu or desktop shortcut
+
+#### Linux
+
+**For AppImage:**
+
+```bash
+chmod +x Bazaar-linux-x64.AppImage
+./Bazaar-linux-x64.AppImage
+```
+
+**For .deb package:**
+
+```bash
+sudo dpkg -i Bazaar-linux-x64.deb
+```
+
 ## 📦 Build Executables
 
 ```bash
