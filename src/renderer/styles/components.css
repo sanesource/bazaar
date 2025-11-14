@@ -947,6 +947,428 @@
   }
 }
 
+/* Custom Watchlists Section */
+.watchlist-controls {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.create-watchlist-btn {
+  background-color: var(--xp-button);
+  border: 2px outset var(--xp-button);
+  color: var(--xp-fg);
+  font-size: 11px;
+  font-weight: bold;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: var(--xp-font);
+  transition: all 0.2s ease;
+}
+
+.create-watchlist-btn:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.create-watchlist-btn:active {
+  border-style: inset;
+}
+
+.watchlist-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--xp-border);
+  padding-bottom: 5px;
+}
+
+.watchlist-tab {
+  background-color: var(--xp-button);
+  border: 2px outset var(--xp-button);
+  color: var(--xp-fg);
+  font-size: 10px;
+  font-weight: bold;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: var(--xp-font);
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.watchlist-tab:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.watchlist-tab.active {
+  background-color: var(--xp-header);
+  color: var(--xp-header-text);
+  border-color: var(--xp-header);
+  border-style: inset;
+}
+
+.watchlist-tab-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.watchlist-tab-close:hover {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.watchlist-content {
+  min-height: 200px;
+  background-color: var(--xp-text-bg);
+  border: 2px inset var(--xp-button);
+  padding: 15px;
+}
+
+.empty-watchlist-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--xp-gray);
+  font-size: 11px;
+}
+
+.watchlist-stocks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.watchlist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--xp-border);
+}
+
+.watchlist-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--xp-header);
+}
+
+.watchlist-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.watchlist-action-btn {
+  background-color: var(--xp-button);
+  border: 2px outset var(--xp-button);
+  color: var(--xp-fg);
+  font-size: 9px;
+  font-weight: bold;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: var(--xp-font);
+  transition: all 0.2s ease;
+}
+
+.watchlist-action-btn:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.watchlist-action-btn:active {
+  border-style: inset;
+}
+
+.watchlist-stocks-list {
+  background-color: var(--xp-bg);
+  border: 1px solid var(--xp-border);
+  min-height: 150px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.watchlist-stock-item {
+  display: grid;
+  grid-template-columns: 140px 1fr 180px 30px;
+  gap: 10px;
+  padding: 5px 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--xp-border);
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.watchlist-stock-item:hover {
+  background-color: var(--xp-button-hover);
+  border-left: 3px solid var(--xp-header);
+}
+
+.watchlist-stock-item:nth-child(even) {
+  background-color: var(--xp-text-bg);
+}
+
+.watchlist-stock-remove {
+  background: none;
+  border: none;
+  color: var(--xp-negative);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.watchlist-stock-remove:hover {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.add-stock-input-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  align-items: flex-start;
+}
+
+.watchlist-search-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.add-stock-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: var(--xp-font);
+  background-color: var(--xp-text-bg);
+  border: 2px inset var(--xp-button);
+  box-sizing: border-box;
+}
+
+.add-stock-input:focus {
+  outline: none;
+  border-color: var(--xp-header);
+}
+
+.watchlist-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--xp-text-bg);
+  border: 2px outset var(--xp-button);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 2px;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.watchlist-search-results.hidden {
+  display: none;
+}
+
+.watchlist-search-result-item {
+  display: grid;
+  grid-template-columns: 100px 1fr 120px 100px;
+  gap: 10px;
+  padding: 8px 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--xp-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.watchlist-search-result-item:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.add-stock-btn {
+  background-color: var(--xp-button);
+  border: 2px outset var(--xp-button);
+  color: var(--xp-fg);
+  font-size: 10px;
+  font-weight: bold;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: var(--xp-font);
+  transition: all 0.2s ease;
+}
+
+.add-stock-btn:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.add-stock-btn:active {
+  border-style: inset;
+}
+
+.add-stock-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.watchlist-empty-state {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--xp-gray);
+  font-size: 11px;
+}
+
+.watchlist-empty-state-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: var(--xp-text-bg);
+  border: 3px outset var(--xp-header);
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: linear-gradient(to right, var(--xp-header), #1084f7);
+  color: var(--xp-header-text);
+  border-bottom: 1px solid var(--xp-border);
+}
+
+.modal-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--xp-header-text);
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.modal-close:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 20px 15px;
+}
+
+.modal-label {
+  display: block;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--xp-fg);
+}
+
+.modal-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-family: var(--xp-font);
+  background-color: var(--xp-bg);
+  border: 2px inset var(--xp-button);
+  box-sizing: border-box;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--xp-header);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 15px;
+  border-top: 1px solid var(--xp-border);
+}
+
+.modal-btn {
+  background-color: var(--xp-button);
+  border: 2px outset var(--xp-button);
+  color: var(--xp-fg);
+  font-size: 11px;
+  font-weight: bold;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-family: var(--xp-font);
+  transition: all 0.2s ease;
+}
+
+.modal-btn:hover {
+  background-color: var(--xp-button-hover);
+}
+
+.modal-btn:active {
+  border-style: inset;
+}
+
+.modal-btn-primary {
+  background-color: var(--xp-header);
+  color: var(--xp-header-text);
+  border-color: var(--xp-header);
+}
+
+.modal-btn-primary:hover {
+  background-color: #1084f7;
+}
+
 @media (max-width: 600px) {
   .profile-content {
     padding: 12px;

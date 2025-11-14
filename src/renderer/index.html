@@ -149,6 +149,66 @@
             </div>
           </section>
 
+          <!-- Custom Watchlists Section -->
+          <section id="watchlists-section" class="section">
+            <div class="section-header">
+              <h2 class="section-title">⭐ Custom Watchlists</h2>
+            </div>
+            <div class="section-content">
+              <!-- Watchlist Controls -->
+              <div class="watchlist-controls">
+                <button id="create-watchlist-btn" class="create-watchlist-btn">
+                  + Create New Watchlist
+                </button>
+              </div>
+
+              <!-- Watchlist Tabs -->
+              <div id="watchlist-tabs" class="watchlist-tabs"></div>
+
+              <!-- Watchlist Content -->
+              <div id="watchlist-content" class="watchlist-content">
+                <div class="empty-watchlist-message">
+                  No watchlists created yet. Click "Create New Watchlist" to get
+                  started!
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Create Watchlist Modal -->
+          <div id="create-watchlist-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3 class="modal-title">Create New Watchlist</h3>
+                <button class="modal-close" id="close-create-modal">×</button>
+              </div>
+              <div class="modal-body">
+                <label class="modal-label">Watchlist Name:</label>
+                <input
+                  type="text"
+                  id="watchlist-name-input"
+                  class="modal-input"
+                  placeholder="Enter watchlist name..."
+                  maxlength="50"
+                />
+              </div>
+              <div class="modal-footer">
+                <button
+                  class="modal-btn modal-btn-cancel"
+                  id="cancel-create-modal"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="modal-btn modal-btn-primary"
+                  id="confirm-create-modal"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Market Sentiment Section -->
           <section id="sentiment-section" class="section">
             <div class="section-header">

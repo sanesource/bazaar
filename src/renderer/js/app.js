@@ -56,6 +56,27 @@ class BazaarApp {
     this.stockProfileContent = document.getElementById("stock-profile-content");
     this.backBtn = document.getElementById("back-btn");
     this.profileTitle = document.getElementById("profile-title");
+
+    // Watchlist elements
+    this.createWatchlistBtn = document.getElementById("create-watchlist-btn");
+    this.watchlistTabs = document.getElementById("watchlist-tabs");
+    this.watchlistContent = document.getElementById("watchlist-content");
+
+    // Watchlist modal elements
+    this.createWatchlistModal = document.getElementById(
+      "create-watchlist-modal"
+    );
+    this.watchlistNameInput = document.getElementById("watchlist-name-input");
+    this.closeCreateModal = document.getElementById("close-create-modal");
+    this.cancelCreateModal = document.getElementById("cancel-create-modal");
+    this.confirmCreateModal = document.getElementById("confirm-create-modal");
+
+    // Watchlist data
+    this.watchlists = this.loadWatchlists();
+    this.activeWatchlistId = null;
+    this.watchlistRefreshTimer = null;
+    this.watchlistRefreshInterval = 10000; // 10 seconds
+    this.watchlistSearchTimeouts = {}; // Track search timeouts per watchlist
   }
 
   attachEventListeners() {
@@ -109,6 +130,136 @@ class BazaarApp {
     this.backBtn.addEventListener("click", () => {
       this.closeStockProfile();
     });
+
+    // Watchlist event listeners
+    this.createWatchlistBtn.addEventListener("click", () => {
+      this.showCreateWatchlistModal();
+    });
+
+    // Modal event listeners
+    this.closeCreateModal.addEventListener("click", () => {
+      this.hideCreateWatchlistModal();
+    });
+
+    this.cancelCreateModal.addEventListener("click", () => {
+      this.hideCreateWatchlistModal();
+    });
+
+    this.confirmCreateModal.addEventListener("click", () => {
+      this.confirmCreateWatchlist();
+    });
+
+    // Enter key in modal input
+    this.watchlistNameInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        this.confirmCreateWatchlist();
+      }
+    });
+
+    // Close modal on overlay click
+    this.createWatchlistModal.addEventListener("click", (e) => {
+      if (e.target === this.createWatchlistModal) {
+        this.hideCreateWatchlistModal();
+      }
+    });
+
+    // Watchlist tabs delegation
+    this.watchlistTabs.addEventListener("click", (e) => {
+      if (e.target.classList.contains("watchlist-tab-close")) {
+        const tab = e.target.closest(".watchlist-tab");
+        const watchlistId = tab.dataset.watchlistId;
+        this.deleteWatchlist(watchlistId);
+      } else if (e.target.closest(".watchlist-tab")) {
+        const tab = e.target.closest(".watchlist-tab");
+        const watchlistId = tab.dataset.watchlistId;
+        this.switchWatchlist(watchlistId);
+      }
+    });
+
+    // Watchlist content delegation
+    this.watchlistContent.addEventListener("click", (e) => {
+      if (e.target.classList.contains("watchlist-stock-remove")) {
+        const symbol = e.target.dataset.symbol;
+        const watchlistId = e.target.closest(".watchlist-stocks-container")
+          .dataset.watchlistId;
+        this.removeStockFromWatchlist(watchlistId, symbol);
+      } else if (e.target.classList.contains("watchlist-action-btn")) {
+        const watchlistId = e.target.closest(".watchlist-stocks-container")
+          .dataset.watchlistId;
+        if (e.target.textContent === "Rename") {
+          this.renameWatchlist(watchlistId);
+        }
+      } else if (e.target.classList.contains("add-stock-btn")) {
+        const watchlistId = e.target.dataset.watchlistId;
+        const input = this.watchlistContent.querySelector(
+          `.add-stock-input[data-watchlist-id="${watchlistId}"]`
+        );
+        if (input) {
+          const symbol = input.value.trim();
+          if (symbol) {
+            this.addStockToWatchlist(watchlistId, symbol);
+            input.value = "";
+            this.hideWatchlistSearchResults(watchlistId);
+          }
+        }
+      } else if (e.target.classList.contains("watchlist-stock-item")) {
+        const symbol = e.target.dataset.symbol;
+        this.openStockProfile(symbol);
+      }
+    });
+
+    // Watchlist search input - search as you type
+    this.watchlistContent.addEventListener("input", (e) => {
+      if (e.target.classList.contains("add-stock-input")) {
+        const watchlistId = e.target.dataset.watchlistId;
+        const query = e.target.value.trim();
+
+        // Clear previous timeout
+        if (this.watchlistSearchTimeouts[watchlistId]) {
+          clearTimeout(this.watchlistSearchTimeouts[watchlistId]);
+        }
+
+        if (query.length === 0) {
+          this.hideWatchlistSearchResults(watchlistId);
+          return;
+        }
+
+        // Debounce search
+        this.watchlistSearchTimeouts[watchlistId] = setTimeout(() => {
+          this.searchStocksForWatchlist(watchlistId, query);
+        }, 300);
+      }
+    });
+
+    // Watchlist search results click
+    this.watchlistContent.addEventListener("click", (e) => {
+      if (e.target.closest(".watchlist-search-result-item")) {
+        const item = e.target.closest(".watchlist-search-result-item");
+        const symbol = item.dataset.symbol;
+        const watchlistId = item.closest(".watchlist-stocks-container").dataset
+          .watchlistId;
+        const input = this.watchlistContent.querySelector(
+          `.add-stock-input[data-watchlist-id="${watchlistId}"]`
+        );
+        if (input) {
+          input.value = "";
+          this.hideWatchlistSearchResults(watchlistId);
+        }
+        this.addStockToWatchlist(watchlistId, symbol);
+      }
+    });
+
+    // Hide search results when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".watchlist-search-wrapper")) {
+        const searchInputs =
+          this.watchlistContent.querySelectorAll(".add-stock-input");
+        searchInputs.forEach((input) => {
+          const watchlistId = input.dataset.watchlistId;
+          this.hideWatchlistSearchResults(watchlistId);
+        });
+      }
+    });
   }
 
   async startApp() {
@@ -127,6 +278,10 @@ class BazaarApp {
 
     // Start gainers/losers auto-refresh if conditions are met
     this.manageGainersLosersAutoRefresh();
+
+    // Initialize watchlists
+    this.renderWatchlists();
+    this.startWatchlistAutoRefresh();
   }
 
   showLoading() {
@@ -634,6 +789,329 @@ class BazaarApp {
     localStorage.setItem("bazaar-theme", themeName);
 
     console.log(`Theme switched to: ${themeName}`);
+  }
+
+  // Watchlist Management Methods
+  loadWatchlists() {
+    try {
+      const saved = localStorage.getItem("bazaar-watchlists");
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Error loading watchlists:", error);
+      return [];
+    }
+  }
+
+  saveWatchlists() {
+    try {
+      localStorage.setItem(
+        "bazaar-watchlists",
+        JSON.stringify(this.watchlists)
+      );
+    } catch (error) {
+      console.error("Error saving watchlists:", error);
+    }
+  }
+
+  showCreateWatchlistModal() {
+    this.watchlistNameInput.value = "";
+    this.createWatchlistModal.classList.remove("hidden");
+    this.watchlistNameInput.focus();
+  }
+
+  hideCreateWatchlistModal() {
+    this.createWatchlistModal.classList.add("hidden");
+    this.watchlistNameInput.value = "";
+  }
+
+  confirmCreateWatchlist() {
+    const watchlistName = this.watchlistNameInput.value.trim();
+    if (!watchlistName) {
+      alert("Please enter a watchlist name");
+      return;
+    }
+
+    const watchlistId = `watchlist-${Date.now()}`;
+    const newWatchlist = {
+      id: watchlistId,
+      name: watchlistName,
+      stocks: [],
+    };
+
+    this.watchlists.push(newWatchlist);
+    this.saveWatchlists();
+    this.hideCreateWatchlistModal();
+    this.renderWatchlists();
+    this.switchWatchlist(watchlistId);
+  }
+
+  async searchStocksForWatchlist(watchlistId, query) {
+    try {
+      const results = await window.api.searchStocks(query);
+      this.showWatchlistSearchResults(watchlistId, results);
+    } catch (error) {
+      console.error("Error searching stocks:", error);
+      this.hideWatchlistSearchResults(watchlistId);
+    }
+  }
+
+  showWatchlistSearchResults(watchlistId, results) {
+    const searchResults = this.watchlistContent.querySelector(
+      `.watchlist-search-results[data-watchlist-id="${watchlistId}"]`
+    );
+    if (!searchResults) return;
+
+    searchResults.innerHTML = "";
+
+    if (results && results.length > 0) {
+      results.forEach((stock) => {
+        const item = document.createElement("div");
+        item.className = "watchlist-search-result-item";
+        item.dataset.symbol = stock.symbol;
+
+        const symbolDiv = document.createElement("div");
+        symbolDiv.className = "search-result-symbol";
+        symbolDiv.textContent = stock.symbol;
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "search-result-name";
+        nameDiv.textContent = stock.companyName;
+
+        const priceDiv = document.createElement("div");
+        priceDiv.className = "search-result-price";
+        priceDiv.textContent = `₹${NumberFormatter.formatIndian(
+          stock.lastPrice
+        )}`;
+
+        const changeDiv = document.createElement("div");
+        const isPositive = stock.pChange >= 0;
+        changeDiv.className = `search-result-change ${
+          isPositive ? "positive" : "negative"
+        }`;
+        const arrow = isPositive ? "▲" : "▼";
+        changeDiv.textContent = `${arrow} ${Math.abs(stock.pChange).toFixed(
+          2
+        )}%`;
+
+        item.appendChild(symbolDiv);
+        item.appendChild(nameDiv);
+        item.appendChild(priceDiv);
+        item.appendChild(changeDiv);
+
+        searchResults.appendChild(item);
+      });
+      searchResults.classList.remove("hidden");
+    } else {
+      const emptyDiv = document.createElement("div");
+      emptyDiv.className = "empty-message";
+      emptyDiv.style.padding = "10px";
+      emptyDiv.style.textAlign = "center";
+      emptyDiv.textContent = "No results found";
+      searchResults.appendChild(emptyDiv);
+      searchResults.classList.remove("hidden");
+    }
+  }
+
+  hideWatchlistSearchResults(watchlistId) {
+    const searchResults = this.watchlistContent.querySelector(
+      `.watchlist-search-results[data-watchlist-id="${watchlistId}"]`
+    );
+    if (searchResults) {
+      searchResults.classList.add("hidden");
+      searchResults.innerHTML = "";
+    }
+  }
+
+  deleteWatchlist(watchlistId) {
+    if (!confirm("Are you sure you want to delete this watchlist?")) {
+      return;
+    }
+
+    this.watchlists = this.watchlists.filter((w) => w.id !== watchlistId);
+    this.saveWatchlists();
+
+    if (this.activeWatchlistId === watchlistId) {
+      this.activeWatchlistId = null;
+    }
+
+    this.renderWatchlists();
+  }
+
+  renameWatchlist(watchlistId) {
+    const watchlist = this.watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) return;
+
+    const newName = prompt("Enter new watchlist name:", watchlist.name);
+    if (!newName || !newName.trim()) {
+      return;
+    }
+
+    watchlist.name = newName.trim();
+    this.saveWatchlists();
+    this.renderWatchlists();
+    this.switchWatchlist(watchlistId);
+  }
+
+  switchWatchlist(watchlistId) {
+    const watchlist = this.watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) return;
+
+    this.activeWatchlistId = watchlistId;
+    this.renderWatchlists();
+    this.refreshWatchlistStocks(watchlistId);
+  }
+
+  addStockToWatchlist(watchlistId, symbol) {
+    if (!symbol) {
+      alert("Please enter a stock symbol");
+      return;
+    }
+
+    const watchlist = this.watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) return;
+
+    // Check if stock already exists
+    if (watchlist.stocks.some((s) => s.symbol === symbol.toUpperCase())) {
+      alert("Stock already in watchlist");
+      return;
+    }
+
+    // Add stock with placeholder data
+    watchlist.stocks.push({
+      symbol: symbol.toUpperCase(),
+      price: null,
+      change: null,
+      change_pct: null,
+    });
+
+    this.saveWatchlists();
+    this.renderWatchlists();
+    this.refreshWatchlistStocks(watchlistId);
+  }
+
+  removeStockFromWatchlist(watchlistId, symbol) {
+    const watchlist = this.watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) return;
+
+    watchlist.stocks = watchlist.stocks.filter((s) => s.symbol !== symbol);
+    this.saveWatchlists();
+    this.renderWatchlists();
+    this.refreshWatchlistStocks(watchlistId);
+  }
+
+  async refreshWatchlistStocks(watchlistId) {
+    const watchlist = this.watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) {
+      return;
+    }
+
+    if (watchlist.stocks.length === 0) {
+      this.updateWatchlistContent(watchlistId);
+      return;
+    }
+
+    try {
+      // Fetch stock data for all symbols in the watchlist
+      const stockPromises = watchlist.stocks.map(async (stock) => {
+        try {
+          const quote = await window.api.getStockQuote(stock.symbol, "1D");
+          if (quote) {
+            return {
+              symbol: stock.symbol,
+              price: quote.price,
+              change: quote.change || 0,
+              change_pct: quote.change_pct,
+            };
+          }
+          return stock; // Return original if fetch fails
+        } catch (error) {
+          console.error(`Error fetching data for ${stock.symbol}:`, error);
+          return stock; // Return original if fetch fails
+        }
+      });
+
+      const updatedStocks = await Promise.all(stockPromises);
+      watchlist.stocks = updatedStocks;
+      this.saveWatchlists();
+
+      // Update content only if this is the active watchlist
+      if (this.activeWatchlistId === watchlistId) {
+        this.updateWatchlistContent(watchlistId);
+      }
+    } catch (error) {
+      console.error("Error refreshing watchlist stocks:", error);
+    }
+  }
+
+  renderWatchlists() {
+    // Render tabs
+    this.watchlistTabs.innerHTML = "";
+
+    if (this.watchlists.length === 0) {
+      this.watchlistContent.innerHTML =
+        '<div class="empty-watchlist-message">No watchlists created yet. Click "Create New Watchlist" to get started!</div>';
+      return;
+    }
+
+    this.watchlists.forEach((watchlist) => {
+      const tab = UIComponents.createWatchlistTab(
+        watchlist.id,
+        watchlist.name,
+        watchlist.id === this.activeWatchlistId
+      );
+      this.watchlistTabs.appendChild(tab);
+    });
+
+    // Render content for active watchlist
+    if (this.activeWatchlistId) {
+      const watchlist = this.watchlists.find(
+        (w) => w.id === this.activeWatchlistId
+      );
+      if (watchlist) {
+        this.updateWatchlistContent(this.activeWatchlistId);
+      }
+    } else if (this.watchlists.length > 0) {
+      // Auto-select first watchlist if none is active
+      this.switchWatchlist(this.watchlists[0].id);
+    }
+  }
+
+  updateWatchlistContent(watchlistId) {
+    const watchlist = this.watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) return;
+
+    const content = UIComponents.createWatchlistContent(
+      watchlist.id,
+      watchlist.name,
+      watchlist.stocks
+    );
+
+    this.watchlistContent.innerHTML = "";
+    this.watchlistContent.appendChild(content);
+
+    // Attach event listeners for stock items
+    const stockItems = content.querySelectorAll(".watchlist-stock-item");
+    stockItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        if (!e.target.classList.contains("watchlist-stock-remove")) {
+          const symbol = item.dataset.symbol;
+          this.openStockProfile(symbol);
+        }
+      });
+    });
+  }
+
+  startWatchlistAutoRefresh() {
+    if (this.watchlistRefreshTimer) {
+      clearInterval(this.watchlistRefreshTimer);
+    }
+
+    // Refresh active watchlist every 10 seconds
+    this.watchlistRefreshTimer = setInterval(() => {
+      if (this.activeWatchlistId) {
+        this.refreshWatchlistStocks(this.activeWatchlistId);
+      }
+    }, this.watchlistRefreshInterval);
   }
 }
 

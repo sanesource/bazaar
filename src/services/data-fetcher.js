@@ -370,9 +370,13 @@ async function getStockQuote(symbol, timePeriod = "1D") {
       }
     }
 
+    // Calculate absolute change amount
+    const changeAmount = currentPrice - prevClose;
+
     return {
       symbol: symbol,
       price: currentPrice,
+      change: changeAmount,
       change_pct: changePct,
     };
   } catch (error) {
@@ -1309,4 +1313,5 @@ module.exports = {
   getTrendingStocks,
   getStockProfile,
   getStockChartData,
+  getStockQuote,
 };

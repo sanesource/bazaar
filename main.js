@@ -103,3 +103,8 @@ ipcMain.handle("get-stock-chart-data", async (event, symbol, timePeriod) => {
   const { getStockChartData } = require("./src/services/data-fetcher");
   return await getStockChartData(symbol, timePeriod);
 });
+
+ipcMain.handle("get-stock-quote", async (event, symbol, timePeriod) => {
+  const { getStockQuote } = require("./src/services/data-fetcher");
+  return await getStockQuote(symbol, timePeriod || "1D");
+});

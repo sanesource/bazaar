@@ -888,4 +888,210 @@ const UIComponents = {
 
     return row;
   },
+
+  /**
+   * Create a watchlist tab element
+   */
+  createWatchlistTab(watchlistId, watchlistName, isActive = false) {
+    const tab = document.createElement("div");
+    tab.className = `watchlist-tab ${isActive ? "active" : ""}`;
+    tab.dataset.watchlistId = watchlistId;
+
+    const tabName = document.createElement("span");
+    tabName.textContent = watchlistName;
+    tab.appendChild(tabName);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "watchlist-tab-close";
+    closeBtn.textContent = "×";
+    closeBtn.title = "Delete watchlist";
+    tab.appendChild(closeBtn);
+
+    return tab;
+  },
+
+  /**
+   * Create watchlist content container
+   */
+  createWatchlistContent(watchlistId, watchlistName, stocks = []) {
+    const container = document.createElement("div");
+    container.className = "watchlist-stocks-container";
+    container.dataset.watchlistId = watchlistId;
+
+    // Header
+    const header = document.createElement("div");
+    header.className = "watchlist-header";
+
+    const title = document.createElement("div");
+    title.className = "watchlist-title";
+    title.textContent = watchlistName;
+    header.appendChild(title);
+
+    const actions = document.createElement("div");
+    actions.className = "watchlist-actions";
+
+    const renameBtn = document.createElement("button");
+    renameBtn.className = "watchlist-action-btn";
+    renameBtn.textContent = "Rename";
+    renameBtn.title = "Rename watchlist";
+    actions.appendChild(renameBtn);
+
+    header.appendChild(actions);
+    container.appendChild(header);
+
+    // Add stock search container
+    const addStockContainer = document.createElement("div");
+    addStockContainer.className = "add-stock-input-container";
+
+    const searchWrapper = document.createElement("div");
+    searchWrapper.className = "watchlist-search-wrapper";
+
+    const addStockInput = document.createElement("input");
+    addStockInput.type = "text";
+    addStockInput.className = "add-stock-input";
+    addStockInput.placeholder = "Search stocks by symbol or name...";
+    addStockInput.dataset.watchlistId = watchlistId;
+    addStockInput.autocomplete = "off";
+
+    const searchResults = document.createElement("div");
+    searchResults.className = "watchlist-search-results hidden";
+    searchResults.dataset.watchlistId = watchlistId;
+
+    searchWrapper.appendChild(addStockInput);
+    searchWrapper.appendChild(searchResults);
+    addStockContainer.appendChild(searchWrapper);
+
+    const addStockBtn = document.createElement("button");
+    addStockBtn.className = "add-stock-btn";
+    addStockBtn.textContent = "Add";
+    addStockBtn.dataset.watchlistId = watchlistId;
+    addStockContainer.appendChild(addStockBtn);
+
+    container.appendChild(addStockContainer);
+
+    // Stocks list
+    const stocksList = document.createElement("div");
+    stocksList.className = "watchlist-stocks-list";
+    stocksList.dataset.watchlistId = watchlistId;
+
+    if (stocks.length === 0) {
+      const emptyState = document.createElement("div");
+      emptyState.className = "watchlist-empty-state";
+      emptyState.innerHTML = `
+        <div class="watchlist-empty-state-icon">📊</div>
+        <div>No stocks in this watchlist yet.</div>
+        <div style="margin-top: 8px; font-size: 10px;">Add stocks using the input above.</div>
+      `;
+      stocksList.appendChild(emptyState);
+    } else {
+      stocks.forEach((stock) => {
+        const stockItem = this.createWatchlistStockItem(stock);
+        stocksList.appendChild(stockItem);
+      });
+    }
+
+    container.appendChild(stocksList);
+
+    return container;
+  },
+
+  /**
+   * Create a watchlist stock item
+   */
+  createWatchlistStockItem(stock) {
+    const item = document.createElement("div");
+    item.className = "watchlist-stock-item";
+    item.dataset.symbol = stock.symbol;
+
+    const symbol = document.createElement("div");
+    symbol.className = "stock-symbol";
+    symbol.textContent = stock.symbol;
+
+    const price = document.createElement("div");
+    price.className = "stock-price";
+    price.textContent = stock.price
+      ? `₹${NumberFormatter.formatIndian(stock.price)}`
+      : "Loading...";
+    price.dataset.value = stock.price || 0;
+
+    const change = document.createElement("div");
+    const changeAmount = stock.change || 0;
+    const changePct = stock.change_pct || 0;
+    const isPositive = changePct >= 0;
+    change.className = `stock-change ${isPositive ? "positive" : "negative"}`;
+    const arrow = isPositive ? "▲" : "▼";
+
+    if (stock.change_pct !== undefined && stock.change !== undefined) {
+      const amountStr = `₹${NumberFormatter.formatIndian(
+        Math.abs(changeAmount)
+      )}`;
+      const pctStr = `${Math.abs(changePct).toFixed(2)}%`;
+      change.textContent = `${arrow} ${amountStr} (${pctStr})`;
+    } else {
+      change.textContent = "--";
+    }
+    change.dataset.value = changePct;
+    change.dataset.changeAmount = changeAmount;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "watchlist-stock-remove";
+    removeBtn.textContent = "×";
+    removeBtn.title = "Remove from watchlist";
+    removeBtn.dataset.symbol = stock.symbol;
+
+    item.appendChild(symbol);
+    item.appendChild(price);
+    item.appendChild(change);
+    item.appendChild(removeBtn);
+
+    return item;
+  },
+
+  /**
+   * Update watchlist stock item with new data
+   */
+  updateWatchlistStockItem(item, stock) {
+    const priceElement = item.querySelector(".stock-price");
+    const changeElement = item.querySelector(".stock-change");
+
+    const oldPrice = parseFloat(priceElement.dataset.value);
+    const newPrice = stock.price;
+    const oldChangePct = parseFloat(changeElement.dataset.value);
+    const newChangePct = stock.change_pct || 0;
+
+    // Update price with animation if changed
+    if (oldPrice !== newPrice && newPrice > 0) {
+      priceElement.classList.remove("value-flash-up", "value-flash-down");
+      void priceElement.offsetWidth; // Trigger reflow
+
+      if (newPrice > oldPrice) {
+        priceElement.classList.add("value-flash-up");
+      } else if (newPrice < oldPrice) {
+        priceElement.classList.add("value-flash-down");
+      }
+
+      priceElement.textContent = `₹${NumberFormatter.formatIndian(newPrice)}`;
+      priceElement.dataset.value = newPrice;
+    }
+
+    // Update change
+    const newChangeAmount = stock.change || 0;
+    const isPositive = newChangePct >= 0;
+    changeElement.className = `stock-change ${
+      isPositive ? "positive" : "negative"
+    }`;
+    const arrow = isPositive ? "▲" : "▼";
+
+    if (stock.change_pct !== undefined && stock.change !== undefined) {
+      const amountStr = `₹${NumberFormatter.formatIndian(
+        Math.abs(newChangeAmount)
+      )}`;
+      const pctStr = `${Math.abs(newChangePct).toFixed(2)}%`;
+      changeElement.textContent = `${arrow} ${amountStr} (${pctStr})`;
+    } else {
+      changeElement.textContent = "--";
+    }
+    changeElement.dataset.value = newChangePct;
+    changeElement.dataset.changeAmount = newChangeAmount;
+  },
 };
